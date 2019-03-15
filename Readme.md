@@ -65,7 +65,7 @@ public final class Boolean implements java.io.Serializable,
  可以有彈性的建立物件, 可以用範型, 可有用 java8 的 supplier 傳入 lambda(見註釋1)
  但是有一些序列化的問題要解決
   
- 註釋1: supplier=() -> T Elvis::instance 意思是 Elvis.instance() 產生一個 Elvis 物件可以以 High order function 傳入supplier functional interface
+ 註釋1: supplier=() -> T Elvis::instance 意思是 Elvis.instance() 產生一個 Elvis 物件可以用 High order function 之特性傳入supplier functional interface
  * enum singleton
  
  比較好的方法,但是不能繼承其他 class 不過可以實作 interface 
@@ -94,8 +94,28 @@ public class SpellChecker {
     }
 }
 ```
-# Item 6
+# Item 6 避免建立不必要的物件
 
+在開發時盡量減少建立不必要物件如下使用 String.matches 時會建立 一個 Pattern 物件,
+因此如果能先將 Pattern 建立出來則不需要每次呼叫 isRomanNumeral 時都建立 Pattern 物件.
+當使用 Boxed Primitive 之物件 如 Long 時每次重新 assign 一個新 value 都會重新產生一個 Long 物件需要注意.
+```java
+//bad
+class RomanNumerals {
+    static boolean isRomanNumeral(String s) {
+        return s.matches("^(?=.)M*(C[MD]|D?C{0,3})" 
+                + "(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+    }
+}
+//good
+class RomanNumerals {
+    private static final Pattern ROMAN = Pattern.compile("^(?=.)M*(C[MD]|D?C{0,3})" + "(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+
+    static boolean isRomanNumeral(String s) {
+        return ROMAN.matcher(s).matches();
+    }
+}
+```
 
 
 

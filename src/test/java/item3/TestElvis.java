@@ -2,7 +2,7 @@ package item3;
 
 import org.junit.Test;
 
-public class testElvis {
+public class TestElvis {
     @Test
     public void ElvisTest(){
         Elvis.INSTANCE.leaveTheBuilding();
