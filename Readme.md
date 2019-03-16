@@ -116,6 +116,12 @@ class RomanNumerals {
     }
 }
 ```
+# Item7 消除未使用的 物件 references
+在 Java 中 memory leak 通常出現於 *未預期的物件保留(unintentional object retentions)* , 如於 Stack 陣列中維護物件而沒有 release 未使用之陣列物件.
+為了保持程式的可讀性將 GC 交由 JVM 對於消除未使用的 物件 references 需要針對例外的狀況消除常見的情形有
+* 維護陣列的物件參考
+* 維護 cache 的物件
+* Listeners 與 其他 Callbacks 物件
 
 
 
