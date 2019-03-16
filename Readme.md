@@ -123,6 +123,8 @@ class RomanNumerals {
 * 維護 cache 的物件
 * Listeners 與 其他 Callbacks 物件
 
+可試著使用 WeakHashMap 去自動消除未使用的 key 所對應的 value, 
+Remember  that  WeakHashMap  is  useful  only  if  the  desired  lifetime  of cache entries is determined by external references to the key, not the value
 
 
 
