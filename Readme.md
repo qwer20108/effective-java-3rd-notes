@@ -150,9 +150,43 @@ cleaners 快一點約 5 倍, 除非要做資源釋放的保險否則不要使用
 # 第三章 Java 物件的通用方法
 本章介紹物件通用方法 equals, hashCode, toString, clone 如何撰寫 finalize前面介紹過了.
 
-## Item 10
- 
- 
+## Item 10 當 overriding equals() 時須遵守的規範
+
+```java
+//Object equals method
+public boolean equals(Object obj) {
+     return (this == obj);
+ }
+
+```
+
+當以下情況不要 override 
+* 每個 instance 本質上是唯一的情況 
+
+如 Thread class 表示它所生成的 instance 實際上是一個 thread 對於其 value 是較不關心的, 因此原本的 Object.equals() 之行為就足夠了.
+* class 不需要提供**邏輯上相等**的判斷
+
+如 java.util.regex.Pattern class 可以 overridden equals 去判斷兩個 Pattern 是否使用一樣的 regular expression ,
+但是沒有人會想去判斷兩個 Pattern 是否一樣所以 equals 不需要 override
+* superclass 已經 override 了 equals 並且不需要在提供額外的行為了
+
+如 Set 繼承了 AbstractSet 的 equals, List 繼承了 AbstractList, Map 繼承了 AbstractMap 其 equals 已經提供足夠的行為了, 不須額外實作.
+* class 是 private 或是 protected 並且你確定 equals 不會被呼叫
+
+你可以直接 override equals 方法確保別人不會呼叫它.
+```java
+@Override public boolean equals(Object o) { 
+    throw new AssertionError(); // Method is never called
+}
+```
+實作 equals 需要遵守的幾個約束 
+* Reflexive: 任何 x 物件的 reference value 非 null 時, x.equals(x) return true
+* Symmetric: 任何 x, y物件的 reference value 非 null 時 x.equals(y) return true 並且 y.equals(x) return true.
+* Transitive: 任何 x, y, z物件的 reference value 非 null , 如 x.equals(y) return true 並 y.equals(z) return true,
+ 則 x.equals(z) 須 return true.
+* Consistent: 任何 x, y物件的 reference value 非 null, 多次的 x.equals(y) 呼叫需為不變的 true 或 false equals.
+* 任何 x 物件的 reference value 非 null, x.equals(null) 需 return false.
+
 
 
 
