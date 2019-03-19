@@ -187,7 +187,7 @@ public boolean equals(Object obj) {
 * Consistent: 任何 x, y物件的 reference value 非 null, 多次的 x.equals(y) 呼叫需為不變的 true 或 false equals.
 * 任何 x 物件的 reference value 非 null, x.equals(null) 需 return false.
 
-
+Java 內建的 Timestamp 與 Date 違反 Symmetric 不能混和用在 Collection 
 
 
 
