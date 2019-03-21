@@ -297,9 +297,38 @@ Immutable Object Lazy load 方法
 
 雖然 override toString 並不是一定要遵守的約束, 但是能讓使用者看的比較懂, 並且比較好 Debug.
 
-## Item13 明智的 Override clone()
+## Item13 明智的判斷 Override clone()
+Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改變 Object.clone() 方法的行為並按照 class 的欄位進行複製, 
+如果沒有 implement 則會丟出 CloneNotSupportedException.
+雖然 Cloneable interface 是空的, 但是實際上一個 class implement Cloneable 預期此 class 會實作 public clone(),
+他的約束如下: 假設一個 Object x
+* x.clone() != x  is true
+* x.clone().getClass() == x.getClass() is true, 但是這不是絕對的 
+* x.clone().equals(x) is true, 但是這不是絕對的
 
-實際上一個 class implement Cloneable 
+如果 x 的所有 superclass 實作 clone() 時是以 super.clone() 實做則 x.clone().getClass() == x.getClass()
+```java
+   // 為何 Override method 可以 return 非 Object 的型態, 因為 Java 支援 covariant  return  types :  
+   // an  overriding  method’s  return  type  can  be  a  subclass  of  the  overriddenmethod’s return type.
+    @Override
+    public PhoneNumberCloneable clone() {
+        try {
+            return (PhoneNumberCloneable) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();  // Can't happen}
+        }
+    }
+```
+需要考慮的是執行 clone() 時會將 object的 reference value 一起 clone(), 因此在這種情況需要考慮 deep copy 在 clone()中, 
+物件欄位的方法再次以此物件的 clone() 方法進行 clone 以進行 deep copy, 如果物件型態是 Array 如:Object[] elements 可以使用 elements.clone(), 
+他會在程式執行時自動以 array 中的物件之 clone() 方法進行 clone, 注意在這裡如果 elements 是 final 的那麼在 result.elements = elements.clone();
+時編譯器會報錯, 因為 elements 不能被指派為新的 clone 物件. 
 
+一個class 要執行 thread-safe clone() 需再 clone method 上加上 synchronized lock 起來.
 
+**總結:** 一個物件如果 implement Cloneable 需要 override clone 並以此物件型態當作回傳值. 此方法的實作需要呼叫 super.clone, 
+並且對於 mutable objects 做 deep copy.
+
+對於物件的方法 copy 除了 implement Cloneable 還可以使用 copy constructor or copy factory 方法. 這種方法可以不用遵照 clone() 的約束, 
+以更有彈性的方法 copy 物件. 如: HashSet s 可以用 TreeSet 的 copy constructor 複製出一個 TreeSet. newTreeSet<>(s)
 
