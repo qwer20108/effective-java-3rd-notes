@@ -297,7 +297,7 @@ Immutable Object Lazy load 方法
 
 雖然 override toString 並不是一定要遵守的約束, 但是能讓使用者看的比較懂, 並且比較好 Debug.
 
-## Item13 明智的判斷 Override clone()
+## Item13 明智的實作 Override clone()
 Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改變 Object.clone() 方法的行為並按照 class 的欄位進行複製, 
 如果沒有 implement 則會丟出 CloneNotSupportedException.
 雖然 Cloneable interface 是空的, 但是實際上一個 class implement Cloneable 預期此 class 會實作 public clone(),
