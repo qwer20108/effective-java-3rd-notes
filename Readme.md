@@ -185,10 +185,121 @@ public boolean equals(Object obj) {
 * Transitive: 任何 x, y, z物件的 reference value 非 null , 如 x.equals(y) return true 並 y.equals(z) return true,
  則 x.equals(z) 須 return true.
 * Consistent: 任何 x, y物件的 reference value 非 null, 多次的 x.equals(y) 呼叫需為不變的 true 或 false equals.
-* 任何 x 物件的 reference value 非 null, x.equals(null) 需 return false.
+* non-nullity: 任何 x 物件的 reference value 非 null, x.equals(null) 需 return false.
 
-Java 內建的 Timestamp 與 Date 違反 Symmetric 不能混和用在 Collection 
+Java 內建的 java.sql.Timestamp 與 java.util.Date 違反 Symmetric 不能混和用在 Collection 
 
+java.net.URL 違反了 Consistent. equals 會根據host IP 改變結果, 同個 URL 物件如果其 host 的 IP 改變了 equals 結果可能會變
+
+如果要 null check 時不需要 check null
+```java
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+    }
+```
+直接使用 instanceof 如果 Object 是 null instanceof 一定回傳 false [JLS 15.20.2](https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.20.2)
+```java
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof MyType)) 
+            return false;
+        MyType mt = (MyType) o;
+    }
+```
+
+equals 的寫法
+
+1. 使用 == 來確認 object 的  reference value: if true 直接 return true, 省了後面的 compare 運算
+2. 使用 instanceof 來確認參數是正確的型別: if not return false,
+3. 將參數的型別 cast 成正確的型別: cast 因為在 instanceof 後面所以可以確保能夠 cast 成功
+4. 對於傳入的物件之每個重要欄位進行比較: 如果這些欄位都通過測試則回傳 true 否則回傳 false. (如 步驟2 的參數是 interface 則使用 method 進行 compare, 如果是 class 可以由 欄位的
+ accessibility 決定是否要直接使用呼叫欄位)
+
+primitive fields 可直接用 == 比較, 如為 float double 用 Float Double compare() method 比較, 用Float.equals()會有 autoboxing 的問題會造成效能低落, 
+如為物件用 equals 比較, 如為 array 用 Arrays.equals(). 
+
+有些物件 reference value 可能是 null 可以用 Objects.equals(Object,Object) 來避免 NullPointException
+```java
+public final class Objects {
+    public static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+}
+```
+寫完 equals 請寫 unit test 來測 Symmetric Transitive Consistent 三種特性  (Consistent 如何測？)
+
+最後幾點 equals 的注意事項
+* override equals 時也要 override hashCode
+* 別自作聰明: 如果單純的比較欄位的相等已達到 equals 的約束並不會太困難. 但如果你考慮太多以去進行比較往往會造成錯誤, 
+如: File class 不需要去比較 file 的 symbolic links 是否指向同一個 file .
+* 不要使用在 equals(Object object) 放入其他的型別如以下, 如果這樣它會變成 overloads, 如果你試著在上面加上 @Override 會不能編譯, 因為 super class 沒有這個 method
+```java
+public boolean equals(MyClass o) { }
+```
+可以嘗試使用 autovalue 自動生成 equals, hashCode (類似 lombok).
+
+如果不需要盡量不要 override equals method, 如 override 確保它所有重要的欄位都要被比較, 並確保其符合上面提到的五個約束.
+
+## Item 11 當 override equals 時也要 override hashCode 
+
+hashCode 的約束
+* 如果被 equals 比較的值沒有變化那麼, 當 hashCode 被呼叫時需要一直保持一樣的回傳值
+* 如果兩個物件的被 equals 判斷為 true, 這兩物件的 hashCode 須為同樣的值
+* 如果兩個物件的被 equals 判斷為 false, 這兩物件的 hashCode 不一定不同. 然而須注意的是如果 unequal 的值其 hashCode 不同, 可以提高 hash tables 的效能.
+ 
+ 以下方法無違反約束, 但是會造成每次 hashCode 都回傳一樣的值, 以至於 hash table 的物件放到 Linked List 當要尋找同樣 key 的物件 reference 時會到 Linked List 找下去造成效能不好.
+ ```java
+// The worst possible legal hashCode implementation - never use!
+@Override public int hashCode() { return 42; }
+```
+
+**hashCode 的作法**
+1. int result, code; 
+2. 計算從有意義的欄位計算 code
+    1. 如欄位是 primitive type, 使用 Type.hashCode(f), 如 Integer.hashCode(f)
+    2. 如欄位是 object 並且 class 的 equals 是由此 object 的 equals 方法實作的, 呼叫 Type.hashCode(object), 如果 object 是 null 則回傳 0.
+    3. 如果欄位是 Array, 並且裡面的值都是有意義的用 Array.hashCode , 如並非全部有意義的 forEach 每個值 然後 計算  result = 31 * result + code, 
+    如無意義的值 code 請設為一個非0的常數;
+3. 依照以上作法 result = 31 * result + c; 計算結果 // 使用 31 在 jvm 可以使用此方法最佳化 31*i == (i<<5)-i (2 * 5 = 32, 31 = 31 - 1 shift = * 2) 並且他是質數 
+[为什么Java String哈希乘数为31？](https://juejin.im/post/5ba75d165188255c6a043b96). 更好的 hashCode 法請參考 com.google.common.hash.Hashing[Guava]
+
+快速的寫法但是效能較差 boxing and unboxing
+```java
+// One-line hashCode method - mediocre performance
+    @Override
+    public int hashCode() {
+        return Objects.hash(lineNum, prefix, areaCode);
+    }
+```
+
+Immutable Object Lazy load 方法
+```java
+    // hashCode method with lazily initialized cached hash code
+    private int hashCode; // Automatically initialized to 0
+    
+    @Override
+    public int hashCode() {
+        int result = hashCode;
+        if (result == 0) {
+            result = Short.hashCode(areaCode);
+            result = 31 * result + Short.hashCode(prefix);
+            result = 31 * result + Short.hashCode(lineNum);
+            hashCode = result;
+        }
+        return result;
+    }
+```
+請撰寫 unit test 測一下約束 2, 如用 autovalue 自動生成可忽略測試. 可以忽略在 equals 中被比較的欄位, 但是需要注意必需忽略沒有在 equals 中被比較的欄位, 
+不然可能會違反約束2.
+
+## Item12 總是 override toString()
+
+雖然 override toString 並不是一定要遵守的約束, 但是能讓使用者看的比較懂, 並且比較好 Debug.
+
+## Item13 明智的 Override clone()
+
+實際上一個 class implement Cloneable 
 
 
 
