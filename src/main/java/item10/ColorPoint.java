@@ -29,5 +29,10 @@ public class ColorPoint extends Point {
         return super.equals(o) && ((ColorPoint) o).color == color;
     }
 
+// Still broken, but won’t compile
+//    @Override
+//    public boolean equals(ColorPoint o) {
+//       return o.color == color;
+//    }
 
 }

@@ -15,3 +15,5 @@ public final class CaseInsensitiveStringRefactor {
         return o instanceof CaseInsensitiveStringRefactor && ((CaseInsensitiveStringRefactor) o).s.equalsIgnoreCase(s);
     }
 }
+
+
