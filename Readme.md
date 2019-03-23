@@ -332,3 +332,19 @@ Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改�
 對於物件的方法 copy 除了 implement Cloneable 還可以使用 copy constructor or copy factory 方法. 這種方法可以不用遵照 clone() 的約束, 
 以更有彈性的方法 copy 物件. 如: HashSet s 可以用 TreeSet 的 copy constructor 複製出一個 TreeSet. newTreeSet<>(s)
 
+## item14 考慮實作 Comparable
+
+實作 Comparable 的約束
+*  任何 x, y 物件 sgn(x.compareTo(y)) ==-sgn(y.compareTo(x)), 如果 x.compareTo(y) 丟出 exception, y.compareTo(x) 也會丟出 exception.
+* transitive:  (x.compareTo(y) > 0 && y.compareTo(z) > 0) 則 x.compareTo(z) > 0
+* x.compareTo(y) == 0 則 sgn(x.compareTo(z)) == sgn(y.compareTo(z))
+* 不適必要的約束, 但是建議 (x.compareTo(y) == 0) == (x.equals(y)). 如果違反此約束需要以註解說明.
+
+和 item10 equals 一樣, 如果有一個 subclass 繼承了, 實作 Comparable class 
+並且新增了一些有意義的數值欄位則可能會違反里氏替換原則(Liskov substitution principle), 因此請以包含代替繼承.
+
+如果 Comparable 的順序和 equals 的結果不一致, 理論上可以運作, 但是使用 TreeSet 與 HashSet 會有不一樣的結果, 
+舉例來說 Java 物件 BigDecimal new BigDecimal("1.0"), new BigDecimal("1.00") 加到 HashSet 會有兩個 instance, 因為 HashSet 是用 equals 比較的, 
+但是使用 TreeSet 只有一個 instance,因為 TreeSet 適用 compareTo 比較的.
+
+  
