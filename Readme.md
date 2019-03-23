@@ -338,13 +338,66 @@ Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改�
 *  任何 x, y 物件 sgn(x.compareTo(y)) ==-sgn(y.compareTo(x)), 如果 x.compareTo(y) 丟出 exception, y.compareTo(x) 也會丟出 exception.
 * transitive:  (x.compareTo(y) > 0 && y.compareTo(z) > 0) 則 x.compareTo(z) > 0
 * x.compareTo(y) == 0 則 sgn(x.compareTo(z)) == sgn(y.compareTo(z))
-* 不適必要的約束, 但是建議 (x.compareTo(y) == 0) == (x.equals(y)). 如果違反此約束需要以註解說明.
-
+* 不適必要的約束, 但是建議 (x.compareTo(y) == 0) == (x.equals(y)). 如果違反此約束需要以註解說明如: BigDecimal api 文件.
+```java
+/*
+ * @apiNote Care should be exercised if {@code BigDecimal} objects
+ * are used as keys in a {@link java.util.SortedMap SortedMap} or
+ * elements in a {@link java.util.SortedSet SortedSet} since
+ * {@code BigDecimal}'s <i>natural ordering</i> is <em>inconsistent
+ * with equals</em>.  See {@link Comparable}, {@link
+ * java.util.SortedMap} or {@link java.util.SortedSet} for more
+ * information.
+*/
+```
 和 item10 equals 一樣, 如果有一個 subclass 繼承了, 實作 Comparable class 
 並且新增了一些有意義的數值欄位則可能會違反里氏替換原則(Liskov substitution principle), 因此請以包含代替繼承.
 
 如果 Comparable 的順序和 equals 的結果不一致, 理論上可以運作, 但是使用 TreeSet 與 HashSet 會有不一樣的結果, 
 舉例來說 Java 物件 BigDecimal new BigDecimal("1.0"), new BigDecimal("1.00") 加到 HashSet 會有兩個 instance, 因為 HashSet 是用 equals 比較的, 
-但是使用 TreeSet 只有一個 instance,因為 TreeSet 適用 compareTo 比較的.
+但是使用 TreeSet 只有一個 instance, 因為 TreeSet 適用 compareTo 比較的.
 
+實作 compareTo 的方法如下: 先比較最重要的值如果值, 不是零就直接回傳比較結果, 如果是零則繼續比較下去.
+```java
+// Multiple-field Comparable with primitive fields
+    public int compareTo(PhoneNumberHashCodeComparable phoneNumberHashCodeComparable) {
+        int result = Short.compare(areaCode, phoneNumberHashCodeComparable.areaCode);
+        if (result == 0) {
+            result = Short.compare(prefix, phoneNumberHashCodeComparable.prefix);
+            if (result == 0)
+                result = Short.compare(lineNum, phoneNumberHashCodeComparable.lineNum);
+        }
+        return result;
+    }
+```
+另外再 Java8 中新增了 comparator construction method 的方法, 雖然這種方法目前跑起來速度可能會慢個 10% 但是可以提高程式碼的可讀性.
+```java
+// Comparator.compare(this, pn) 會將 o1 , o2 丟到 comparingXXX 然後 comparingXXX 透過 apply o1 o2 的 function 去執行比較
+// java.util.Comparator.comparingInt 傳入 (T) => int  回傳  Comparator 
+// Comparable with comparator construction methods
+    private static final Comparator<PhoneNumberHashCodeComparable> COMPARATOR =
+            java.util.Comparator.comparingInt((PhoneNumberHashCodeComparable pn) -> pn.areaCode)
+                    .thenComparingInt(pn -> pn.prefix)
+                    .thenComparingInt(pn -> pn.lineNum);
+
+    public int compareTo(PhoneNumberHashCodeComparable pn) {
+        return COMPARATOR.compare(this, pn);
+    }
+```
+另外注意的是比較值的時候 不要用 < > = 等等比較運算子比較, 請用 Boxed primitive 的 compare 比較, 因為如果用 Integer 如以下範例可能會出現 integer overflow 的狀況,
+ 而用 float 則會出現精準度比較的問題.
+```java
+//bad
+    static Comparator<Object> hashCodeOrder = new Comparator<>() {
+        public int compare(Object o1, Object o2) {
+            return o1.hashCode() - o2.hashCode();
+        }
+    };
+//good
+    static Comparator<Object> hashCodeOrder = new Comparator<>() {
+        public int compare(Object o1, Object o2) {
+            return Integer.compare(o1.hashCode(), o2.hashCode());
+        }
+    };
+```
   
