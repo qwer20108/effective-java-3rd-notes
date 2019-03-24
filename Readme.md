@@ -400,4 +400,49 @@ Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改�
         }
     };
 ```
-  
+# 第四章 Classes 與 Interfaces
+
+## Item 15 最小化 class 與其成員的可存取性
+
+class 的成員(fields, methods, nested classes, and nested interfaces)有以下四種存取等級.
+* private - 成員只可以被宣告它的 class 所存取.  
+* package-private - 成員只可以被在 package 的 class 所存取, 預設所有成員都是這個,除了 interface 是預設 public
+* protected - 成員可以被 class 的 subclass 及 package 中的 class 所存取.
+* public - 可以被存取.
+
+為了確保里式替換法則(Liskov substitution principle), 請確保 subclass 不會對其 override 的 method 做更進一步的存取限制. 
+ 
+如果因為要測試需要提高存取級別, 請不要將其提高到 package-private 以上的存取級別, 因為測試程式碼可以放在同樣的 package 底下測試. 
+ **PS: main/java/package, test/java/package 兩個是同樣 package** 
+
+**Instance fields** 請盡量不要設為 public, 如果 fields 是 nonfinal 並且指向可變物件, 則將會導致大家可以存取它並且因為不能限制存取狀態的方法會讓此 class 變成非 thread safe class.
+
+如果此 fields 是 final 並且指向不可變物件, 也會引響你對於改變使 field 的彈性. 
+
+對於那些 static final 的 fields 只能夠開放 primitive value 及 immutable object 使用 public, 如果開放了 mutable object 則會導致一些錯誤發生,
+
+將 mutable array field 改變為 immutable array:
+```java
+// Potential security hole!
+public static final Thing[] VALUES =  { ... };
+
+private static final Thing[] PRIVATE_VALUES = { ... };
+public static final List<Thing> VALUES =    Collections.unmodifiableList(Arrays.asList(PRIVATE_VALUES))
+// or
+private static final Thing[] PRIVATE_VALUES = { ... };
+public static final Thing[] values() {
+    return PRIVATE_VALUES.clone();
+}
+
+``` 
+在 Java 9 導入了 _模組化系統(module  system)_ 一個模組代表一組的 packages, 一個 package 代表一組的 classes. 模組可以透過宣告 export 的方式開放 packages 的存取權限
+(通常模組宣告會放在一個名稱為 module-info.java 的檔案中).
+如果將模組化的 Jar 檔案放在 class 路徑而不是放在模組化路徑則會導致模組化功能失效.
+
+## Item 16 在 public class 使用存取方法而不要使用 public fields
+
+if a class is package-private or is a private nested class, there is nothing inherently wrong with exposing its data fields.
+
+public class 不應該開放可變欄位. 對於不可變欄位雖然有爭議, 但是還算是可以開放, 而對於 private 與 package-private 物件可以依照需求決定是否開放.
+
+## Item 17 最小化可變性
