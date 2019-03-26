@@ -446,3 +446,55 @@ if a class is package-private or is a private nested class, there is nothing inh
 public class 不應該開放可變欄位. 對於不可變欄位雖然有爭議, 但是還算是可以開放, 而對於 private 與 package-private 物件可以依照需求決定是否開放.
 
 ## Item 17 最小化可變性
+
+為了讓 class 能夠 immutable 請根據以下規則設計 class.
+1. 不要提供改變 class 狀態的方法 (mutators).
+2. 確保 classs 不能被繼承. 
+3. 將所有欄位設為 final. [JSL 17.5. final Field Semantics](https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.5).
+4. 將所有欄位設為 private. 雖然可以開放但請參考 item15 16  
+5. 限制那些包含 mutable object reference value 的欄位的存取, 另外可參考 Make  defensive  copies(item50) readObject methods(item88).
+
+**Immutable objects are inherently thread-safe; they require no synchronization.**
+
+**Not only can you share immutable objects, but they can share their inter-nals.**
+```java
+    
+    final int signum;
+    final int[] mag;
+    /**
+     * This internal constructor differs from its public cousin
+     * with the arguments reversed in two ways: it assumes that its
+     * arguments are correct, and it doesn't copy the magnitude array.
+     */
+    public BigInteger negate() {
+        return new BigInteger(this.mag, -this.signum);
+    }
+    // magnitude 是同一個 array reference 只改變 signum 不需重新生成 array 
+    BigInteger(int[] magnitude, int signum) {
+        this.signum = (magnitude.length == 0 ? 0 : signum);
+        this.mag = magnitude;
+        if (mag.length >= MAX_MAG_LENGTH) {
+            checkRange();
+        }
+    }
+```
+**Immutable objects make great building blocks for other objects,**
+因為 Immutable 所以比較好維護 component 的狀態, 如 map 的 keys, set 的 elements 因為 Immutable 所以可以放心地使用.
+
+
+**Immutable objects provide failure atomicity for free** - item 76
+
+**The  major  disadvantage  of  immutable  classes  is  that  they  require  aseparate  object  for  each  distinct  value.**
+
+```java
+// moby BigInteger 很大很大 只改一個 bit 花了很多時間 因為 Immutable 只能重新建立
+BigInteger moby = ...; 
+moby = moby.flipBit(0);
+// muutable object 只改一個 bit 就好了
+BitSet moby = ...;
+moby.flip(0);
+```
+解決方法:
+提供 **companion class** 於內部提供可變物件以加速運算. 如: BigInteger 與 MutableBigInteger, 於外部提供可讓使用者自由操作. 
+如: String 與 StringBuilder 與 StringBuffer
+ 
