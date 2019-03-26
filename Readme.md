@@ -1,6 +1,6 @@
 # 第二章 建立與銷毀物件的方法
 
-## item1 - 使用 static factory method 取代 constructors
+## item 1 - 使用 static factory method 取代 constructors
 
 一般來說 Java 主要以 constructors 來建立新的 instance 但是其實 Java 可以在 class 中提供  static factory method 來建立 instance
 
@@ -54,9 +54,9 @@ public final class Boolean implements java.io.Serializable,
     * newType—Like newInstance, but used if the factory method is in a differentclass. Type is the type of object returned by the factory method, for example:BufferedReader br = Files.newBufferedReader(path);
     * type—A concise alternative to getType and newType, for example:List<Complaint> litany = Collections.list(legacyLitany);
 
-## Item2 考慮使用 build pattern 當 constructor 參數很多時
+## Item 2 考慮使用 build pattern 當 constructor 參數很多時
 
-## Item3 建立 singleton 物件的技巧 使用 private constructor 或 enum type
+## Item 3 建立 singleton 物件的技巧 使用 private constructor 或 enum type
 
  * public static final field 的方式
  
@@ -72,12 +72,12 @@ public final class Boolean implements java.io.Serializable,
  
  比較好的方法,但是不能繼承其他 class 不過可以實作 interface 
 
-## Item4 用 private constructor 確保物件不能被 實例化(instantiated)
+## Item 4 用 private constructor 確保物件不能被 實例化(instantiated)
 
 有些 class 如 util 類, 包含了很多 static method, 這些 class 其實不需要被實例化, 
 因此建議以 private constructor 確保它不能被實例化.   
 
-## Item5 使用 dependency injection 來注入物件
+## Item 5 使用 dependency injection 來注入物件
 以下是拼字檢查的物件,相依於 Lexicon 物件, 而 Lexicon 可能有很多不同實作如 EnglishLexicon, ChineseLexicon , 
 可用 dependency injection 的方式傳入 factory pattern 之 FactoryClass 以在 constructor 產生不同實作的 Lexicon.
 另外於 Java8 可使用 supplier functional interface 來限制 FactoryClass 的 type 如: Supplier<? extends Lexicon> lexiconFactory
@@ -118,7 +118,7 @@ class RomanNumerals {
     }
 }
 ```
-## Item7 消除未使用的 物件 references
+## Item 7 消除未使用的 物件 references
 在 Java 中 memory leak 通常出現於 *未預期的物件保留(unintentional object retentions)* , 如於 Stack 陣列中維護物件而沒有 release 未使用之陣列物件.
 為了保持程式的可讀性將 GC 交由 JVM 對於消除未使用的 物件 references 需要針對例外的狀況消除常見的情形有
 * 維護陣列的物件參考
@@ -128,7 +128,7 @@ class RomanNumerals {
 可試著使用 WeakHashMap 去自動消除未使用的 key 所對應的 value, 
 Remember  that  WeakHashMap  is  useful  only  if  the  desired  lifetime  of cache entries is determined by external references to the key, not the value
 
-## Item8 避免使用 finalizers 與 cleaners
+## Item 8 避免使用 finalizers 與 cleaners
 finalizers 會在 gc 後被執行, 但是 java gc 時機是由 JVM 演算法決定的因此不能保證即時性, 
 並且使用它會影響 gc 效能（about 50times slower to create and destroy objects with finalizers）, 
 cleaners 快一點約 5 倍, 除非要做資源釋放的保險否則不要使用.
@@ -140,7 +140,7 @@ cleaners 快一點約 5 倍, 除非要做資源釋放的保險否則不要使用
  * 作為資源釋放的保險, 並且這些資源可以接受非即時性的釋放 如： FileInputStream, FileOutputStream, ThreadPoolExecutor, and java.sql.Connection
  * native  peers(一個包含 native methods 的物件)的資源釋放保險, 如效能與即時性可以妥協的話, 如不能妥協請使用 AutoCloseable 實作 close method
  
-## Item9 使用 try(resource) 而不使用 try{} finally{}
+## Item 9 使用 try(resource) 而不使用 try{} finally{}
  
 使用 try{} finally{} 用於 resource 的關閉不只程式碼比較醜, 還可能發生第一個 exception 被偵測後而執行 close method 後發生第二個 exception 時丟出 exception Stack 的狀況造成 debug 困難, 因第一個 exception 沒印出 exception Stack message.
 比如說當讀檔案時, 硬碟壞了發生 exception 然後程式碼直接跳到 close method 執行然後發生第二個 exception 則 exception Stack 顯示的 message 會是 close method 的 message.  
@@ -293,11 +293,11 @@ Immutable Object Lazy load 方法
 請撰寫 unit test 測一下約束 2, 如用 autovalue 自動生成可忽略測試. 可以忽略在 equals 中被比較的欄位, 但是需要注意必需忽略沒有在 equals 中被比較的欄位, 
 不然可能會違反約束2.
 
-## Item12 總是 override toString()
+## Item 12 總是 override toString()
 
 雖然 override toString 並不是一定要遵守的約束, 但是能讓使用者看的比較懂, 並且比較好 Debug.
 
-## Item13 明智的實作 Override clone()
+## Item 13 明智的實作 Override clone()
 Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改變 Object.clone() 方法的行為並按照 class 的欄位進行複製, 
 如果沒有 implement 則會丟出 CloneNotSupportedException.
 雖然 Cloneable interface 是空的, 但是實際上一個 class implement Cloneable 預期此 class 會實作 public clone(),
@@ -332,7 +332,7 @@ Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改�
 對於物件的方法 copy 除了 implement Cloneable 還可以使用 copy constructor or copy factory 方法. 這種方法可以不用遵照 clone() 的約束, 
 以更有彈性的方法 copy 物件. 如: HashSet s 可以用 TreeSet 的 copy constructor 複製出一個 TreeSet. newTreeSet<>(s)
 
-## item14 考慮實作 Comparable
+## item 14 考慮實作 Comparable
 
 實作 Comparable 的約束
 *  任何 x, y 物件 sgn(x.compareTo(y)) ==-sgn(y.compareTo(x)), 如果 x.compareTo(y) 丟出 exception, y.compareTo(x) 也會丟出 exception.
@@ -514,7 +514,7 @@ immutable classes 的定義 no method may produce an externally visible change i
 **類別欄位如果可以就宣告成 private final.**. object 盡量重複使用, method 盡量回傳以生成的 object. 
 java.util.concurrent.CountDownLatch 可以用來參考, 它雖然並非 immutable 但是基本上會保持狀態改變最小化.
 
-## item18 複合(Composition)優於繼承
+## item 18 複合(Composition)優於繼承
  
 此處指的 **inheritance** 指的是 implementation inheritance 並非,  interface inheritance
 
@@ -533,7 +533,78 @@ java.util.concurrent.CountDownLatch 可以用來參考, 它雖然並非 immutabl
 繼承只適合用在子類別真的需要為子型態的情形: 使用繼承時請確認子類別和父類別是 is-a 的關係. 當 B extend A 時 問問自己  B 是否真的是一種 A? 
 在 Java 中其實有很多設計錯誤的繼承, 例如: Properties extends Hashtable, Stack<E> extends Vector<E> 基本上都應該用複合設計.
 
-    
+## Item 19  設計並解釋如何繼承 class, 否則禁止繼承
+使用 Java8 引入的 @implSpec 撰寫 class 時明確的說明可能會被繼承使用的 method 其詳細實作規格,可讓繼承此 class 的人了解原本的方法實作細節 如下:
+java.util.AbstractCollection
+```java
+    /**
+     * {@inheritDoc}
+     *
+     * @implSpec
+     * This implementation iterates over the collection looking for the
+     * specified element.  If it finds the element, it removes the element
+     * from the collection using the iterator's remove method.
+     *
+     * <p>Note that this implementation throws an
+     * {@code UnsupportedOperationException} if the iterator returned by this
+     * collection's iterator method does not implement the {@code remove}
+     * method and this collection contains the specified object.
+     *
+     * @throws UnsupportedOperationException {@inheritDoc}
+     * @throws ClassCastException            {@inheritDoc}
+     * @throws NullPointerException          {@inheritDoc}
+     */
+    public boolean remove(Object o) 
+
+```
+可以提供一些 protected 方法供 subclass 進行程式碼最佳化.
+java.util.AbstractList
+```java
+    /**
+     * Removes from this list all of the elements whose index is between
+     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive.
+     * Shifts any succeeding elements to the left (reduces their index).
+     * This call shortens the list by {@code (toIndex - fromIndex)} elements.
+     * (If {@code toIndex==fromIndex}, this operation has no effect.)
+     *
+     * <p>This method is called by the {@code clear} operation on this list
+     * and its subLists.  Overriding this method to take advantage of
+     * the internals of the list implementation can <i>substantially</i>
+     * improve the performance of the {@code clear} operation on this list
+     * and its subLists.
+     *
+     * @implSpec
+     * This implementation gets a list iterator positioned before
+     * {@code fromIndex}, and repeatedly calls {@code ListIterator.next}
+     * followed by {@code ListIterator.remove} until the entire range has
+     * been removed.  <b>Note: if {@code ListIterator.remove} requires linear
+     * time, this implementation requires quadratic time.</b>
+     *
+     * @param fromIndex index of first element to be removed
+     * @param toIndex index after last element to be removed
+     */
+    protected void removeRange(int fromIndex, int toIndex)
+```
+
+如果你要設計可以讓別人繼承的 class 請遵守以下規則
+
+*  Constructors 不能呼叫可以被 override 的 method - 你只能呼叫 private methods, final methods, and static methods 這些不能被 override 的 method
+
+SuperClass 的 constructor 會先於 SubClass 的 constructor 呼叫, 因此如果 SubClass 的 override 依賴於 SubClass 的 field 則會發生問題. 
+可參考 item19 範例
+
+* 當你設計好你的 class 請確保你會依照你目前的實作對未來的修改進行限制, 以確保 subclass 不會因為你的實作而造成行為改變
+
+
+總結: 設計一個可以被繼承的 class 是很困難的. 你必須要對可被繼承的方法進行限制確保它未來的實作不會改變子類別的行為, 
+並以文件說明它會呼叫什麼可被繼承的方法, 及如何實作. 
+另外為了提供 subClass 最佳化程式碼, 你還需要設計一個 protected methods 提供子類別呼叫. 
+
+除非你確認這個 class 會被繼承否則, 請將 class 設為 final 或是將 constructors 設為 private.
+
+
+
+
 
 
 
