@@ -602,20 +602,62 @@ SuperClass 的 constructor 會先於 SubClass 的 constructor 呼叫, 因此如�
 
 除非你確認這個 class 會被繼承否則, 請將 class 設為 final 或是將 constructors 設為 private.
 
+## item 20 interface 優於 abstract class
+* **Existing classes can easily be retrofitted to implement a new interface.**
 
+使用 interface 可以讓你的 class 被更容易的擴充, 例如: 現有的  class 可以透過 implement Comparable, Iterable, Autocloseable 
+以實作這些 interface 的功能以擴充 class 之功能, 但是如果你使用 abstract class 則必須透過繼承擴充.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+* **Interfaces are ideal for defining mixins**:
  
+mixin 可以讓你透過實作另一型態的方法使你的 class 混入另一種額外型態.
+
+* **Interfaces allow for the construction of nonhierarchical type frameworks.** : 
+
+interface 可以讓你建立非階層式類別, 例如: 
+以下 歌手與作曲家的 interface, 可能有些歌手同時也是作曲家, 如果你使用 interface 可以在一個 class 中同時 implement Singer, Songwriter 兩個 interface, 
+或是建立一個 interface SingerSongwriter 繼承  Singer, Songwriter 在實作它. 
+```java
+public interface Singer {
+    AudioClip sing(Song s);
+}
+public interface Songwriter {
+    Song compose(int chartPosition);
+}
+
+public interface SingerSongwriter extends Singer, Songwriter {
+    AudioClip strum();
+    void actSensitive();
+}
+
+```
+* Interface 使用 item18 的 wrapper class 方法以安全並強大的方式擴充程式碼
+
+如果你使用 abstract classes 以定義型別, 你將需要透過繼承來擴充 class 這樣反而比 wrapper class 的方法更不安全且脆弱.
+
+在 java8 你可以使用 default method 但是有一些限制需要注意
+* 你不能提供 equals 與 hashCode 的 default method
+* interface 不允許有 instance fields, 或是非 public 的 static members, 但是可以有 private static methods
+* 你不能加入 default methods 到你所不能控制的 interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
