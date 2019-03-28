@@ -640,8 +640,38 @@ public interface SingerSongwriter extends Singer, Songwriter {
 * interface 不允許有 instance fields, 或是非 public 的 static members, 但是可以有 private static methods
 * 你不能加入 default methods 到你所不能控制的 interface
 
+ skeletal  implementation
+ simulated  multiple  inheritance
+```java
+// Concrete implementation built atop skeletal implementation
+    static List<Integer> intArrayAsList(int[] a) {
+        Objects.requireNonNull(a);
+        // The diamond operator is only legal here in Java 9 and later
+        // If you're using an earlier release, specify <Integer>
+        return new AbstractList<>() {
+            @Override
+            public Integer get(int i) {
+                return a[i];  // Autoboxing (Item 6)}
+                @Override public Integer set ( int i, Integer val){
+                    int oldVal = a[i];
+                    a[i] = val;     // Auto-unboxing
+                    return oldVal;  // Autoboxing
+                }
+                @Override public int size () {
+                    return a.length;
+                }
+            }
 
+            ;
+        }
+    }
 
+```
+
+實作 skeletal implementation 其實很簡單的只是很繁瑣, 
+1. 首先根據你的 interface 決定那些 method 是要給其他 method implement 的
+2. 在其他你要直接 implement 的方法, 提供 default method
+3. if 這個 interface 已經達到你的要求了完成, else 以一個 class implement 這個 interface 提供 non public fields 與 methods 完成任務.
 
 
 
