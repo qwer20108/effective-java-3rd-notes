@@ -608,7 +608,7 @@ SuperClass 的 constructor 會先於 SubClass 的 constructor 呼叫, 因此如�
 使用 interface 可以讓你的 class 被更容易的擴充, 例如: 現有的  class 可以透過 implement Comparable, Iterable, Autocloseable 
 以實作這些 interface 的功能以擴充 class 之功能, 但是如果你使用 abstract class 則必須透過繼承擴充.
 
-* **Interfaces are ideal for defining mixins**:
+* **Interfaces are ideal for defining mixins**: // mixin trait 有什麼不同?
  
 mixin 可以讓你透過實作另一型態的方法使你的 class 混入另一種額外型態.
 
@@ -633,48 +633,119 @@ public interface SingerSongwriter extends Singer, Songwriter {
 ```
 * Interface 使用 item18 的 wrapper class 方法以安全並強大的方式擴充程式碼
 
-如果你使用 abstract classes 以定義型別, 你將需要透過繼承來擴充 class 這樣反而比 wrapper class 的方法更不安全且脆弱.
+如果你使用 abstract classes 以定義型別, 你將需要透過繼承來擴充 class 這樣反而比 wrapper class 的方法更不安全且脆弱. (繼承很危險 item18)
 
 在 java8 你可以使用 default method 但是有一些限制需要注意
 * 你不能提供 equals 與 hashCode 的 default method
 * interface 不允許有 instance fields, 或是非 public 的 static members, 但是可以有 private static methods
 * 你不能加入 default methods 到你所不能控制的 interface
 
- skeletal  implementation
- simulated  multiple  inheritance
+ 你可以結合 abstract 與 interface 來建立一個 `skeletal implementation class ` 通常來說 skeletal implementation classes 命名規則已 Abstract + Interface 來命名
+ 如: Java Collections Framework - AbstractCollection, AbstractSet, AbstractList, AbstractMap 
+  
+設計一個 skeletal implementation 可以讓使用者更加容易的實作 interface 以下是一個以 skeletal implementation class 建立的 Adapter 範例
 ```java
+// 此 method 將 int[] 轉為 List 來操作
 // Concrete implementation built atop skeletal implementation
-    static List<Integer> intArrayAsList(int[] a) {
-        Objects.requireNonNull(a);
-        // The diamond operator is only legal here in Java 9 and later
-        // If you're using an earlier release, specify <Integer>
-        return new AbstractList<>() {
-            @Override
-            public Integer get(int i) {
-                return a[i];  // Autoboxing (Item 6)}
-                @Override public Integer set ( int i, Integer val){
-                    int oldVal = a[i];
-                    a[i] = val;     // Auto-unboxing
-                    return oldVal;  // Autoboxing
-                }
-                @Override public int size () {
-                    return a.length;
-                }
-            }
-
-            ;
+static List<Integer> intArrayAsList(int[] a) {
+    Objects.requireNonNull(a);
+    // The diamond operator is only legal here in Java 9 and later
+    // If you're using an earlier release, specify <Integer>
+    return new AbstractList<>() {
+        @Override
+        public Integer get(int i) {
+            return a[i];  // Autoboxing (Item 6)}
         }
+        @Override public Integer set ( int i, Integer val){
+            int oldVal = a[i];
+            a[i] = val;     // Auto-unboxing
+            return oldVal;  // Autoboxing
+        }
+        @Override public int size () {
+            return a.length;
+        }
+    };
+}
+    
+```
+實作 skeletal implementation 其實很簡單的只是很繁瑣, 
+1. 首先根據你的 interface 決定那些 method 是要給其他 method implement 的不提供 default method
+2. 在其他你要直接 implement 的方法, 提供 default method
+3. if 這個 interface 已經達到你的要求了完成, else 以一個 abstract class implement 這個 interface 提供 non public fields 與 methods 完成任務.
+
+下面是一個 Skeletal implementation class AbstractMapEntry 的範例它 implement 了 Entry interface 
+讓你自己實作 K getKey(), V getValue() method 並提供 setValue 讓你選擇實作, 需要 
+```java
+// Skeletal implementation class
+public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
+    // Entries in a modifiable map must override this method
+    @Override
+    public V setValue(V value) {
+        throw new UnsupportedOperationException();
     }
 
+    // Implements the general contract of Map.Entry.equals
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Map.Entry)) return false;
+        Map.Entry<?, ?> e = (Map.Entry) o;
+        return Objects.equals(e.getKey(), getKey()) && Objects.equals(e.getValue(), getValue());
+    }
+
+    // Implements the general contract of Map.Entry.hashCode
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
+    }
+
+    @Override
+    public String toString() {
+        return getKey() + "=" + getValue();
+    }
+}
+
+interface Entry<K, V> {
+
+    K getKey();
+
+    V getValue();
+
+    V setValue(V value);
+
+    boolean equals(Object o);
+
+    int hashCode();
+
+    public static <K extends Comparable<? super K>, V> Comparator<Map.Entry<K, V>> comparingByKey() {
+        return (Comparator<Map.Entry<K, V>> & Serializable)
+            (c1, c2) -> c1.getKey().compareTo(c2.getKey());
+    }
+
+    public static <K, V extends Comparable<? super V>> Comparator<Map.Entry<K, V>> comparingByValue() {
+        return (Comparator<Map.Entry<K, V>> & Serializable)
+            (c1, c2) -> c1.getValue().compareTo(c2.getValue());
+    }
+
+    public static <K, V> Comparator<Map.Entry<K, V>> comparingByKey(Comparator<? super K> cmp) {
+        Objects.requireNonNull(cmp);
+        return (Comparator<Map.Entry<K, V>> & Serializable)
+            (c1, c2) -> cmp.compare(c1.getKey(), c2.getKey());
+    }
+
+    public static <K, V> Comparator<Map.Entry<K, V>> comparingByValue(Comparator<? super V> cmp) {
+        Objects.requireNonNull(cmp);
+        return (Comparator<Map.Entry<K, V>> & Serializable)
+            (c1, c2) -> cmp.compare(c1.getValue(), c2.getValue());
+    }
+}
+
 ```
+通常 skeletal implementation 透過 abstract implement interface 來達到取兩者的優點並由 subclass 實作, 
+但需要注意的是它是設計來給 subclass 繼承的, 所以請注意依照 item19 的方法來實作.
 
-實作 skeletal implementation 其實很簡單的只是很繁瑣, 
-1. 首先根據你的 interface 決定那些 method 是要給其他 method implement 的
-2. 在其他你要直接 implement 的方法, 提供 default method
-3. if 這個 interface 已經達到你的要求了完成, else 以一個 class implement 這個 interface 提供 non public fields 與 methods 完成任務.
-
-
-
+另外  skeletal implementation 有一種變種的方式一個 class 直接 implement interface 如: AbstractMap.SimpleEntry 
+這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class. 
 
 
 
