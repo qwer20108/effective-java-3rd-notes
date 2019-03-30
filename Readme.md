@@ -745,7 +745,36 @@ interface Entry<K, V> {
 但需要注意的是它是設計來給 subclass 繼承的, 所以請注意依照 item19 的方法來實作.
 
 另外  skeletal implementation 有一種變種的方式一個 class 直接 implement interface 如: AbstractMap.SimpleEntry 
-這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class. 
+這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class.
+
+## Item21  設計一個可以流傳後世的 Interface   
+在 Java 8 我們可以在 interface 中使用 default, 但是我們可能想像不到加入一個 default method 可能對某些特殊實作造成那些影響.
+
+舉例來說以下是 Java8 Collection interface 中所引入的 default method 這個 method 看起來很簡單, 
+只是傳入一個 function: T -> boolean 如果 boolean 回傳 true 就刪除. 
+```java
+    // Default method added to the Collection interface in Java 8
+    default boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        boolean result = false;
+        for (Iterator<E> it = iterator(); it.hasNext(); ) {
+            if (filter.test(it.next())) {
+                it.remove();
+                result = true;
+            }
+        }
+        return result;
+    }
+
+```
+但是使用在某些實作像是 Apache Commons library 的 SynchronizedCollection 則可能會在 runtime 時發生 ConcurrentModificationException.
+
+其實在 JDK 中 Collections.synchronizedCollection class 也會發生類似的狀況, 但是它是 JDK 的一部分在開發時預料到這種狀況, 
+所以透過 override removeIf 來避免這種狀況. 而對於那些不是 JDK 的 library 則可能會發生無法預料的狀況.
+
+因此設計 interface 時想清楚你設計的 default 是否會影響到某些實作, 因為當你 interface release 出去了為了保持向下相容, 你就不能再更改 interface 了.
+
+
 
 
 
