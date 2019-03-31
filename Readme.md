@@ -747,7 +747,7 @@ interface Entry<K, V> {
 另外  skeletal implementation 有一種變種的方式一個 class 直接 implement interface 如: AbstractMap.SimpleEntry 
 這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class.
 
-## Item21  設計一個可以流傳後世的 Interface   
+## Item21  設計可以流傳後世的 Interface   
 在 Java 8 我們可以在 interface 中使用 default, 但是我們可能想像不到加入一個 default method 可能對某些特殊實作造成那些影響.
 
 舉例來說以下是 Java8 Collection interface 中所引入的 default method 這個 method 看起來很簡單, 
@@ -773,6 +773,35 @@ interface Entry<K, V> {
 所以透過 override removeIf 來避免這種狀況. 而對於那些不是 JDK 的 library 則可能會發生無法預料的狀況.
 
 因此設計 interface 時想清楚你設計的 default 是否會影響到某些實作, 因為當你 interface release 出去了為了保持向下相容, 你就不能再更改 interface 了.
+
+## item22 只在定義型別時用 interface
+在使用 interface 時常常有人將其用來定義常數以讓其只包含常數而不包含 method 這種 interface 通稱為 _constant  interface_ 如下:
+```java
+// Constant interface antipattern - do not use!
+public interface PhysicalConstants {
+    // Avogadro's number (1/mol)
+    static final double AVOGADROS_NUMBER   = 6.022_140_857e23;
+    // Boltzmann constant (J/K)
+    static final double BOLTZMANN_CONSTANT = 1.380_648_52e-23;
+    // Mass of the electron (kg)
+    static final double ELECTRON_MASS      = 9.109_383_56e-31;
+}
+```
+使用這種 interface 雖然不會怎樣, 但是當你 implement 了它, 以後你要移除它就困難了, 因為所有的 subclass 將會有這些常數, 或是抹些使用這個 class 的使用者會用到這些常數.
+
+在 Java library 中其實也有這種 interface ObjectStreamConstants 但是你應該當它為特例不要模仿它.
+
+如果你要使用常數請寫一個 util class 然後加入這些常數 class . 另外再 java7 後你可以在數字加上下畫線 _ 已讓數字分隔單位更容易看清楚. 
+```java
+// Constant utility class
+public class PhysicalConstants {
+    private PhysicalConstants() { }  // Prevents instantiation
+
+    public static final double AVOGADROS_NUMBER = 6.022_140_857e23;
+    public static final double BOLTZMANN_CONST = 1.380_648_52e-23;
+    public static final double ELECTRON_MASS = 9.109_383_56e-31;
+}
+```
 
 
 
