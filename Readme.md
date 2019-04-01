@@ -787,11 +787,11 @@ public interface PhysicalConstants {
     static final double ELECTRON_MASS      = 9.109_383_56e-31;
 }
 ```
-使用這種 interface 雖然不會怎樣, 但是當你 implement 了它, 以後你要移除它就困難了, 因為所有的 subclass 將會有這些常數, 或是抹些使用這個 class 的使用者會用到這些常數.
+使用這種 interface 雖然不會怎樣, 但是當你 implement 了它, 以後你要移除它就困難了, 因為所有的 subclass 將會有這些常數, 或是某些使用這個 class 的使用者會用到這些常數.
 
 在 Java library 中其實也有這種 interface ObjectStreamConstants 但是你應該當它為特例不要模仿它.
 
-如果你要使用常數請寫一個 util class 然後加入這些常數 class . 另外再 java7 後你可以在數字加上下畫線 _ 已讓數字分隔單位更容易看清楚. 
+如果你要使用常數請寫一個 util class 然後加入這些常數 class . 另外再 java7 後你可以在數字加上下畫線 _ 以讓數字分隔單位更容易看清楚. 
 ```java
 // Constant utility class
 public class PhysicalConstants {
@@ -802,6 +802,52 @@ public class PhysicalConstants {
     public static final double ELECTRON_MASS = 9.109_383_56e-31;
 }
 ```
+
+## item 23 Prefer class hierarchies to tagged classes (以繼承來標記類別型態)
+以下程式碼使用一個欄位 Shape 來表示此類別 Figure 的不同的形態 RECTANGLE 與 CIRCLE.
+```java
+public class FigureBad {
+    enum Shape {RECTANGLE, CIRCLE};
+
+    // Tag field - the shape of this figure
+    final Shape shape;
+
+    // These fields are used only if shape is RECTANGLE
+    double length;
+    double width;
+
+    // This field is used only if shape is CIRCLE
+    double radius;
+
+    // Constructor for circle
+    FigureBad(double radius) {
+        shape = Shape.CIRCLE;
+        this.radius = radius;
+    }
+    // Constructor for rectangle
+    FigureBad(double length, double width) {
+        shape = Shape.RECTANGLE;
+        this.length = length;
+        this.width = width;
+    }
+
+    double area() {
+        switch (shape) {
+            case RECTANGLE:
+                return length * width;
+            case CIRCLE:
+                return Math.PI * (radius * radius);
+            default:
+                throw new AssertionError(shape);
+        }
+    }
+}
+```
+以這種方式來表示類別型態是很不好的, 它有很多的缺點像是: 可讀性差, 記憶體被無關緊要的欄位占用, 
+欄位不能設為 final 因為有些欄位是專屬某個型態的你不能在 constractor 時指派欄位值. 
+像這種時候應該使用繼承的方式, 設一個 abstract class Figure 然後用 class Circle, class Rectangle 來繼承它以表示它的型態.
+
+
 
 
 
