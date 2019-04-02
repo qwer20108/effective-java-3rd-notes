@@ -56,7 +56,7 @@ public final class Boolean implements java.io.Serializable,
 
 ## Item 2 考慮使用 build pattern 當 constructor 參數很多時
 
-## Item 3 建立 singleton 物件的技巧 使用 private constructor 或 enum type
+## Item 3 建立 singleton 物件的技巧: 使用 private constructor 或 enum type
 
  * public static final field 的方式
  
@@ -747,7 +747,7 @@ interface Entry<K, V> {
 另外  skeletal implementation 有一種變種的方式一個 class 直接 implement interface 如: AbstractMap.SimpleEntry 
 這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class.
 
-## Item21  設計可以流傳後世的 Interface   
+## Item 21  設計可以流傳後世的 Interface   
 在 Java 8 我們可以在 interface 中使用 default, 但是我們可能想像不到加入一個 default method 可能對某些特殊實作造成那些影響.
 
 舉例來說以下是 Java8 Collection interface 中所引入的 default method 這個 method 看起來很簡單, 
@@ -774,7 +774,7 @@ interface Entry<K, V> {
 
 因此設計 interface 時想清楚你設計的 default 是否會影響到某些實作, 因為當你 interface release 出去了為了保持向下相容, 你就不能再更改 interface 了.
 
-## item22 只在定義型別時用 interface
+## item 22 只在定義型別時用 interface
 在使用 interface 時常常有人將其用來定義常數以讓其只包含常數而不包含 method 這種 interface 通稱為 _constant  interface_ 如下:
 ```java
 // Constant interface antipattern - do not use!
@@ -846,6 +846,42 @@ public class FigureBad {
 以這種方式來表示類別型態是很不好的, 它有很多的缺點像是: 可讀性差, 記憶體被無關緊要的欄位占用, 
 欄位不能設為 final 因為有些欄位是專屬某個型態的你不能在 constractor 時指派欄位值. 
 像這種時候應該使用繼承的方式, 設一個 abstract class Figure 然後用 class Circle, class Rectangle 來繼承它以表示它的型態.
+## item 24: static member class 優於 nonstatic
+先看 [Oracle Java Tutorials Nested Object](https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html)
+
+**enclosing instance: Outer Class 的 instance**
+
+Java 有四種 nested classes:static member classes, nonstatic member classes, anonymous classes 與 local classes 
+除了第一種其他都是 inner classes, 本 item 主要介紹什麼時候用這些 nested classes.
+
+
+* static member class
+* nonstatic member class
+通常使用在 Adapter 轉換 type
+```java
+// Typical use of a nonstatic member class
+public class MySet<E> extends AbstractSet<E> {
+    //... Bulk of the class omitted
+
+    @Override
+    public Iterator<E> iterator() {
+        return new MyIterator();
+    }
+
+    private class MyIterator implements Iterator<E> {
+        //...
+    }
+}
+```
+一個 nonstatic member class 會有一個 reference value this 指到它的 enclosing instance 
+
+**If you declare a member class that does not require access to an enclosing instance, always put the static modifier in its declaration**
+如果你定義了一個 member class 不會存取 enclosing instance 的 private member, 請加上 static
+
+* anonymous classes
+
+* local classes 
+
 
 
 
