@@ -857,6 +857,10 @@ public class FigureBad {
 **If you declare a member class that does not require access to an enclosing instance, always put the static modifier in its declaration**
 如果你定義了一個 member class 不會存取 enclosing instance 的 private member, 請加上 static
 
+## item 25:  限制每個 .java 檔案只宣告一個 class
+
+不要再一個 .java 檔案宣告多個 class, 如果真的需要請用 static member class
+
 
 
 
