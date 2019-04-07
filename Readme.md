@@ -851,42 +851,11 @@ public class FigureBad {
 
 **enclosing instance: Outer Class 的 instance**
 
-Java 有四種 nested classes:static member classes, nonstatic member classes, anonymous classes 與 local classes 
-除了第一種其他都是 inner classes, 本 item 主要介紹什麼時候用這些 nested classes.
-
-
-* static member class
-* nonstatic member class
-通常使用在 Adapter 轉換 type
-```java
-// Typical use of a nonstatic member class
-public class MySet<E> extends AbstractSet<E> {
-    //... Bulk of the class omitted
-
-    @Override
-    public Iterator<E> iterator() {
-        return new MyIterator();
-    }
-
-    private class MyIterator implements Iterator<E> {
-        //...
-    }
-}
-```
-一個 nonstatic member class 會有一個 reference value this 指到它的 enclosing instance 
+本 item 重點:一個 nonstatic member class 會有一個 reference value this 指到它的 enclosing instance, 因此如果這個 member clas 
+的 reference value 沒被釋放則 this 指到的 enclosing instance 無法被 GC
 
 **If you declare a member class that does not require access to an enclosing instance, always put the static modifier in its declaration**
 如果你定義了一個 member class 不會存取 enclosing instance 的 private member, 請加上 static
-
-* anonymous classes
-
-* local classes 
-
-
-
-
-
-
 
 
 
