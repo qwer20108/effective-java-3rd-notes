@@ -861,17 +861,38 @@ public class FigureBad {
 
 不要再一個 .java 檔案宣告多個 class, 如果真的需要請用 static member class
 
+# 第五章 泛型
 
+## item 26:  不要使用 raw types
 
+class 或 interface 如果宣告了 _type parameters_ 則可稱作 _generic class
+or interface_.
 
+Generic classes and interfaces are collectively known as _generic
+types_.
 
+each generic type defines a _raw type_ . example the raw type
+corresponding to List<E> is List.
 
+List<String> is a subtype of the raw type List, but not of the
+parameterized type List<Object>.
+[參考官方文件泛型繼承子型別](https://docs.oracle.com/javase/tutorial/java/generics/inheritance.html)
+如果要傳入不特定的泛型參數請用 *unbounded wildcard types* 如: Set<?> s1
 
+### 使用 raw Type 的例外狀況 
+.class 與 instanceof 不能用泛型
 
+**You must use raw types in class
+literals.** List.class, String[].class, and int.class are all legal, but
+List<String>.class and List<?>.class are not
 
+**This is the preferred way to use the instanceof operator with generic types**
+```java
+// Legitimate use of raw type - instanceof operator
+if (o instanceof Set) {       // Raw type
+    Set<?> s = (Set<?>) o;    // Wildcard type
+}
 
-
-
-
+```
 
 
