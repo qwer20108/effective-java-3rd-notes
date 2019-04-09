@@ -309,7 +309,7 @@ Cloneable 是一個空的 interface 如果 class implement Cloneable 則會改�
 如果 x 的所有 superclass 實作 clone() 時是以 super.clone() 實做則 x.clone().getClass() == x.getClass()
 ```java
    // 為何 Override method 可以 return 非 Object 的型態, 因為 Java 支援 covariant  return  types :  
-   // an  overriding  method’s  return  type  can  be  a  subclass  of  the  overriddenmethod’s return type.
+   // an  overriding  method’s  return  type  can  be  a  subclass  of  the  overridden method’s return type.
     @Override
     public PhoneNumberCloneable clone() {
         try {
@@ -894,5 +894,57 @@ if (o instanceof Set) {       // Raw type
 }
 
 ```
+![](.README_images/gernerics_term.png)
+## item 27: 消除 unchecked warnings
 
+在 Java 中常常會出現 unchecked warnings 讓你知道這裡可能會有
+runtime error 的狀況, 通常這些 unchecked warnings
+是可以透過一些方法消除的如下：
+```java
+//assign raw type HashSet to Set of Lark 可能會有非 Lark 型態的 HashSet runtime error
+Set<Lark> exaltation = new HashSet();
+// 加入 <> 讓 java7 後的編譯器 type infer 
+Set<Lark> exaltation = new HashSet<>();
+```
 
+有些時候你可能無法消除這個警告, 這時候如果你能夠證明你的 code 不會
+runtime error 你可以加上 ＠SuppressWarnings 以壓制這個警告,
+並且寫註解以告訴別人為何他是 typesafe 以防別人修改 code 後出現
+runtime error.
+
+盡可能在最小範圍內使用你的 @SuppressWarnings("unchecked") 
+```java
+//  這個 ArrayList 的 toArray 可以不用使用在 method 上, 而是使用在 return 上面縮小範圍  
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] a) {
+        if (a.length < size)
+            // Make a new array of a's runtime type, but my contents:
+            return (T[]) Arrays.copyOf(elementData, size, a.getClass());
+        System.arraycopy(elementData, 0, a, 0, size);
+        if (a.length > size)
+            a[size] = null;
+        return a;
+    }
+```
+
+## Item 28: 偏好使用 Lists 而不是 arrays
+
+arrays are covariant
+ 
+Generics, by contrast, are invariant
+
+arrays are reified
+
+generic types erasure
+
+非法 new List<E>[], new List<String>[], new E[] non-reifiable types 
+
+合法 new List<?>[] reifiable types 
+```java 
+    // Why generic array creation is illegal - won't compile!
+    List<String>[] stringLists = new List<String>[1];  // (1)
+    List<Integer> intList = List.of(42);// (2)
+    Object[] objects = stringLists;// (3)
+    objects[0] = intList;// (4)
+    String s = stringLists[0].get(0);// (5)
+```
