@@ -948,3 +948,15 @@ generic types erasure
     objects[0] = intList;// (4)
     String s = stringLists[0].get(0);// (5)
 ```
+
+## item 29: 偏好使用 generic type
+
+本章介紹了將以 generic type 取代 Object 的方法. 在使用 generic type
+時如果 class 有 generic array field 如: private E[] elements; , 而不能
+new 時 有兩種方法可以解決:
+
+1. 將 constructor 的 new E[] 轉為 Object[] 然後再 cast 
+2. 將 field 的 E[] 轉為 Object[] 然後再 cast 每個 element 為 E 
+
+
+
