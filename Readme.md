@@ -52,7 +52,9 @@ public final class Boolean implements java.io.Serializable,
     * create  or  newInstance—Like instance  or  getInstance,  except  that  themethod guarantees that each call returns a new instance, for example:Object newArray = Array.newInstance(classObject, arrayLen);
     * getType—Like getInstance, but used if the factory method is in a differentclass. Type is the type of object returned by the factory method, for example:FileStore fs = Files.getFileStore(path);
     * newType—Like newInstance, but used if the factory method is in a differentclass. Type is the type of object returned by the factory method, for example:BufferedReader br = Files.newBufferedReader(path);
-    * type—A concise alternative to getType and newType, for example:List<Complaint> litany = Collections.list(legacyLitany);
+  *   type—A concise alternative to getType and newType, for
+      example:List\<Complaint> litany =
+      Collections.list(legacyLitany);
 
 ## Item 2 考慮使用 build pattern 當 constructor 參數很多時
 
@@ -530,8 +532,11 @@ java.util.concurrent.CountDownLatch 可以用來參考, 它雖然並非 immutabl
 因此你可以放心的使用複合在新的 class 中將要複合的物件宣告成 private field 並透過這個 field 轉發(forwarding) method 以達到
 重複使用 method 的目的.
 
-繼承只適合用在子類別真的需要為子型態的情形: 使用繼承時請確認子類別和父類別是 is-a 的關係. 當 B extend A 時 問問自己  B 是否真的是一種 A? 
-在 Java 中其實有很多設計錯誤的繼承, 例如: Properties extends Hashtable, Stack<E> extends Vector<E> 基本上都應該用複合設計.
+繼承只適合用在子類別真的需要為子型態的情形:
+使用繼承時請確認子類別和父類別是 is-a 的關係. 當 B extend A 時
+問問自己 B 是否真的是一種 A? 在 Java 中其實有很多設計錯誤的繼承,
+例如: Properties extends Hashtable, Stack\<E> extends
+Vector\<E> 基本上都應該用複合設計.
 
 ## Item 19  設計並解釋如何繼承 class, 否則禁止繼承
 使用 Java8 引入的 @implSpec 撰寫 class 時明確的說明可能會被繼承使用的 method 其詳細實作規格,可讓繼承此 class 的人了解原本的方法實作細節 如下:
@@ -872,19 +877,20 @@ Generic classes and interfaces are collectively known as _generic
 types_.
 
 each generic type defines a _raw type_ . example the raw type
-corresponding to List<E> is List.
+corresponding to List\<E> is List.
 
-List<String> is a subtype of the raw type List, but not of the
-parameterized type List<Object>.
+List\<String> is a subtype of the raw type List, but not of the
+parameterized type List\<Object>.
 [參考官方文件泛型繼承子型別](https://docs.oracle.com/javase/tutorial/java/generics/inheritance.html)
-如果要傳入不特定的泛型參數請用 *unbounded wildcard types* 如: Set<?> s1
+如果要傳入不特定的泛型參數請用 *unbounded wildcard types* 如:
+Set<?> s1
 
 ### 使用 raw Type 的例外狀況 
 .class 與 instanceof 不能用泛型
 
-**You must use raw types in class
-literals.** List.class, String[].class, and int.class are all legal, but
-List<String>.class and List<?>.class are not
+**You must use raw types in class literals.** List.class,
+String[].class, and int.class are all legal, but
+List\<String>.class and List<?>.class are not
 
 **This is the preferred way to use the instanceof operator with generic types**
 ```java
@@ -937,9 +943,10 @@ arrays are reified
 
 generic types erasure
 
-非法 new List<E>[], new List<String>[], new E[] non-reifiable types 
+非法 new List\<E>[], new List\<String>[], new E[] non-reifiable
+types
 
-合法 new List<?>[] reifiable types 
+合法 new List\<?>[] reifiable types 
 ```java 
     // Why generic array creation is illegal - won't compile!
     List<String>[] stringLists = new List<String>[1];  // (1)
@@ -958,5 +965,28 @@ new 時 有兩種方法可以解決:
 1. 將 constructor 的 new E[] 轉為 Object[] 然後再 cast 
 2. 將 field 的 E[] 轉為 Object[] 然後再 cast 每個 element 為 E 
 
+## item 30: 偏好使用 generic method
+
+範形方法用法：將你的 type parameters 宣告在 method 的 modifiers
+與 return type 之間. 如：
+```java
+// Generic method
+public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
+        Set<E> result = new HashSet<>(s1);
+        result.addAll(s2);
+        return result;
+    }
+```
+
+*generic singleton factory* **Collections.reverseOrder** **Collections.emptySet.**
+
+<E extends Comparable\<E>> may be read as “any type E that can
+be compared to itself, 常用在 collection 的 method 中 用來 sort
+search 與計算最大最小.
+
+## item 31: 使用 bounded wildcards 以加強 API 的靈活度
+
+Generics are invariant 所以 List\<Super> 與 List\<Sub> 兩個
+type 無並非 super sub type 的關係.
 
 
