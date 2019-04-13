@@ -986,7 +986,44 @@ search 與計算最大最小.
 
 ## item 31: 使用 bounded wildcards 以加強 API 的靈活度
 
-Generics are invariant 所以 List\<Super> 與 List\<Sub> 兩個
-type 無並非 super sub type 的關係.
+Generics are invariant 所以 List\<Super> 與 List\<Sub> 兩個 type 無並非
+super sub type 的關係. 
+
+如果你在某個 class Stack<E> 使用了 Stack<Number> = new Stack(); 而他的
+method 使用 generics 而不是 wildcard 則你將不能在 method 使用 Number 的
+sup type, 請參考以下 pushAll method 以 bounded wildcards 取代 generics
+可以放入任何 E 的 subtype.
+
+```java
+public void pushAll(Iterable<? extends E> src) {
+    for (E e : src)
+        push(e);
+}
+
+public void popAll(Collection<? super E> dst) {
+        while (!isEmpty()) 
+            dst.add(pop());
+}
+``` 
+
+上面方法 pushAll 會將參數放進去 Stack 中對於 Stack
+來說這個參數是一個生產者, 一般來說生產者的參數, 因為要放進去 Stack
+所以他需要是 subtype wildcard 因該使用 extend.
+
+上面方法 popAll 會將 Stack 的值放到參數中對於 Stack
+來說這個參數是一個消費者, 一般來說消費者, 因為要將 Stack
+的值放進去因此它因該是 Stack 的值的 super type 因該使用 super.
+
+你可以使用這個記憶法記憶, 什麼時候使用 extend super PECS stands for
+producer-extends, consumer-super
+
+<T extends Comparable<? super T>> -> T 需要實作 Comparable<T 的
+supertype> ex: Cat implement Comparable<Animal>
 
 
+if a type parameter appears only once in a method declaration, replace
+it with a wildcard.
+[看這個:類型參數和通配符的選擇](https://www.jyt0532.com/2018/12/23/how-to-choose-between-wildcard-and-generic-method/)
+ 
+Also remember that all comparables and comparators are consumers. 因為
+comparables 物件要將值放進去 compare 所以他是消費者

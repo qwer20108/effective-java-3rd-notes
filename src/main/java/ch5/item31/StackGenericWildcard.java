@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.EmptyStackException;
 
 // Initial attempt to generify Stack - won't compile!
-public class StackGeneric<E> {
+public class StackGenericWildcard<E> {
     private Object[] elements;
     private int size = 0;
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
 
-    public StackGeneric() {
+    public StackGenericWildcard() {
         elements = new Object[DEFAULT_INITIAL_CAPACITY];
     }
 
@@ -41,7 +41,8 @@ public class StackGeneric<E> {
 
     // Wildcard type for a parameter that serves as an E producer
     public void pushAll(Iterable<? extends E> src) {
-        for (E e : src) push(e);
+        for (E e : src)
+            push(e);
     }
 
     // popAll method without wildcard type - deficient!
@@ -51,7 +52,8 @@ public class StackGeneric<E> {
 
     // Wildcard type for parameter that serves as an E consumer
     public void popAll(Collection<? super E> dst) {
-        while (!isEmpty()) dst.add(pop());
+        while (!isEmpty())
+            dst.add(pop());
     }
 
     public boolean isEmpty(){
