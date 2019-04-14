@@ -1027,3 +1027,104 @@ it with a wildcard.
  
 Also remember that all comparables and comparators are consumers. 因為
 comparables 物件要將值放進去 compare 所以他是消費者
+
+Item 32: 明智的使用 generics 與 varargs
+
+non reifiable type is one whose runtime representation has less
+information than its compile-time representation
+
+```java
+    // Mixing generics and varargs can violate type safety!
+    static void dangerous(List<String>... stringLists) {
+        List<Integer> intList = List.of(42);
+        Object[] objects = stringLists;
+        objects[0] = intList;              // Heap pollution  
+        String s = stringLists[0].get(0); // ClassCastException
+    }
+```
+可以編譯, 因為某些情況 generics 與 varargs 合用有意義像是:
+Arrays.asList(T...a),
+Collections.addAll(Collection<?superT>c,T...elements), and EnumSet.of(E
+first,E...rest) 
+
+@SafeVarargs 可以告訴 compile 他們是安全的, 但是要如何確保安全. if the
+varargs parameter array is used only to transmit a variable number of
+arguments from the caller to the method—which is, after all, the
+purpose of varargs—then the method is safe.
+
+
+```java
+    // UNSAFE - Exposes a reference to its generic parameter array! 
+    static <T> T[] toArray(T... args) { 
+        return args; 
+    }
+    // pickTwo will always return an array of type Object[]
+    static <T> T[] pickTwo(T a, T b, T c) {
+        switch (ThreadLocalRandom.current().nextInt(3)) {
+            case 0:
+                return toArray(a, b);
+            case 1:
+                return toArray(a, c);
+            case 2:
+                return toArray(b, c);
+        }
+        throw new AssertionError(); // Can't get here
+    }
+    public static void main(String[] args) {   
+        String[] attributes = pickTwo("Good", "Fast", "Cheap");
+    }
+``` 
+**it is unsafe to give another method access to a generic varargs
+parameter array**, with two exceptions:
+1. it is safe to pass the array to another varargs method that
+is correctly annotated with @SafeVarargs, and 
+2. it is safe to pass the
+array to a non-varargs method that merely computes some function of the
+contents of the array
+
+```java
+// Safe method with a generic varargs parameter
+@SafeVarargsstatic
+<T> List<T> flatten(List<? extends T>... lists) {
+    List<T> result = new ArrayList<>();
+    for (List<? extends T> list : lists) result.addAll(list);
+    return result;
+}
+``` 
+**Use @SafeVarargs on every method with a varargs
+parameter of a generic or parameterized type**
+
+
+As a reminder, a generic varargs methods is safe if:
+1. it doesn’t store anything in the varargs parameter array 
+2. it doesn’t make the array (or a clone) visible to untrusted code.
+
+Note that the SafeVarargs annotation is legal only on methods that
+can’t be overridden, because it is impossible to guarantee that every
+possible overridingmethod will be safe. 
+
+```java
+    // List as a typesafe alternative to a generic varargs parameter
+    static <T> List<T> flatten(List<List<? extends T>> lists) {
+        List<T> result = new ArrayList<>();
+        for (List<? extends T> list : lists) result.addAll(list);
+        return result;
+    }
+    audience = flatten(List.of(friends, romans, countrymen));
+
+    static <T> List<T> pickTwo(T a, T b, T c) {
+        switch (rnd.nextInt(3)) {
+            case 0:
+                return List.of(a, b);
+            case 1:
+                return List.of(a, c);
+            case 2:
+                return List.of(b, c);
+        }
+        throw new AssertionError();
+    }
+    
+    public static void main(String[] args) {
+        List<String> attributes = pickTwo("Good", "Fast", "Cheap");
+    }
+```
