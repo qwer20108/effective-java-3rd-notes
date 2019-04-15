@@ -1128,3 +1128,90 @@ possible overridingmethod will be safe.
         List<String> attributes = pickTwo("Good", "Fast", "Cheap");
     }
 ```
+
+Item 33: Consider typesafe heterogeneous containers
+
+Common uses of generics:  
+* collections, such as Set<E> and Map<K,V>
+* single-element  containers,  such  as  ThreadLocal<T>  and  AtomicReference<T>
+
+一個容器通常只能傳幾個參數型別, 如要實作如 database row 有任意的
+columns 不同型別的物件不方便. 替代方案: **parameterize the key
+instead of the container** 
+
+String.class is of type Class<String>, and Integer.class is of
+type Class<Integer>. When a class literal is passed among
+methods to communicate both compile-time and runtime type
+information, it is called a **type token**
+
+```java
+public class Favorites {
+
+    public <T> void putFavorite(Class<T> type, T instance) {
+        favorites.put(Objects.requireNonNull(type), instance);
+    }
+
+    public <T> T getFavorite(Class<T> type) {
+        return type.cast(favorites.get(type));
+    }
+
+    // Typesafe heterogeneous container pattern - client
+    public static void main(String[] args) {
+        Favorites f = new Favorites();
+        f.putFavorite(String.class, "Java");
+        f.putFavorite(Integer.class, 0xcafebabe);
+        f.putFavorite(Class.class, Favorites.class);
+        String favoriteString = f.getFavorite(String.class);
+        int favoriteInteger = f.getFavorite(Integer.class);
+        Class<?> favoriteClass = f.getFavorite(Class.class);
+        System.out.printf("%s %x %s%n", favoriteString, favoriteInteger, favoriteClass.getName());
+    }
+}
+```
+
+
+```java
+public class Class<T> {
+    @HotSpotIntrinsicCandidate
+    public T cast(Object obj) {
+        if (obj != null && !isInstance(obj))
+            throw new ClassCastException(cannotCastMsg(obj));
+        return (T) obj;
+    }
+}
+```
+
+two limitations to the Favorites class:
+1. a malicious client could easily corrupt the type safety of a
+   Favorites instance, by using a Class object in its raw form. [解釋請看](https://stackoverflow.com/questions/35961017/parameterized-type-keys-for-map)
+   解決
+```java
+// Achieving runtime type safety with a dynamic cast
+public <T> void putFavorite(Class<T> type, T instance) {
+    favorites.put(type, type.cast(instance));
+}
+``` 
+2. it cannot be used on anon-reifiable type. 
+
+you can store your favorite String orString[], but not your favorite
+List\<String>. The class literal List<String>.class is a syntax  error,
+
+
+The annotations API (Item 39) makes extensive use of **bounded type token**
+
+```java
+public interface AnnotatedElement {
+    <T extends Annotation> T getAnnotation(Class<T> annotationClass);
+}
+
+// Use of asSubclass to safely cast to a bounded type token
+    static Annotation getAnnotation(AnnotatedElement element, String annotationTypeName) {
+        Class<?> annotationType = null; // Unbounded type token
+        try {
+            annotationType = Class.forName(annotationTypeName);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return element.getAnnotation(annotationType.asSubclass(Annotation.class));
+    }
+```
