@@ -1028,7 +1028,7 @@ it with a wildcard.
 Also remember that all comparables and comparators are consumers. 因為
 comparables 物件要將值放進去 compare 所以他是消費者
 
-Item 32: 明智的使用 generics 與 varargs
+## Item 32: 明智的使用 generics 與 varargs
 
 non reifiable type is one whose runtime representation has less
 information than its compile-time representation
@@ -1129,7 +1129,7 @@ possible overridingmethod will be safe.
     }
 ```
 
-Item 33: Consider typesafe heterogeneous containers
+## Item 33: Consider typesafe heterogeneous containers
 
 Common uses of generics:  
 * collections, such as Set<E> and Map<K,V>
@@ -1215,3 +1215,195 @@ public interface AnnotatedElement {
         return element.getAnnotation(annotationType.asSubclass(Annotation.class));
     }
 ```
+
+# 第六章 Enums 與 Annotations
+
+## item 34: 使用 enums 以替代 int 常數
+**enumerated type** 一般可用來表示一系列的常數如: 四季, 太陽系行星,
+與撲克牌圖案. 在 Java 引入 enum 之前可以使用常數的方式來替代 enum.
+但是因為沒有完整的型別無法透過編譯期檢查一些型別問題,
+這其實是很不安全的.
+```java
+    // The int enum pattern - severely deficient!
+    public static final int APPLE_FUJI = 0;
+    public static final int APPLE_PIPPIN = 1;
+    public static final int APPLE_GRANNY_SMITH = 2;
+    public static final int ORANGE_NAVEL = 0;
+    public static final int ORANGE_TEMPLE = 1;
+    public static final int ORANGE_BLOOD = 2;
+    
+```
+
+以下是一個 enum 的範例它提供了 8 個 enum 這個特殊的 class 的 instance
+並且於程式啟動時建立. 並且能夠存取他的 method.
+```java
+public enum Planet {
+    MERCURY(3.302e+23, 2.439e6),
+    VENUS(4.869e+24, 6.052e6),
+    EARTH(5.975e+24, 6.378e6),
+    MARS(6.419e+23, 3.393e6),
+    JUPITER(1.899e+27, 7.149e7),
+    SATURN(5.685e+26, 6.027e7),
+    URANUS(8.683e+25, 2.556e7),
+    NEPTUNE(1.024e+26, 2.477e7);
+
+    private final double mass;           // In kilograms
+    private final double radius;         // In meters
+    private final double surfaceGravity; // In m / s^2
+
+    // Universal gravitational constant in m^3 / kg s^2
+    private static final double G = 6.67300E-11;
+
+    // Constructor
+    Planet(double mass, double radius) {
+        this.mass = mass;
+        this.radius = radius;
+        surfaceGravity = G * mass / (radius * radius);
+    }
+
+    public double mass() {
+        return mass;
+    }
+
+    public double radius() {
+        return radius;
+    }
+
+    public double surfaceGravity() {
+        return surfaceGravity;
+    }
+
+    public double surfaceWeight(double mass) {
+        return mass * surfaceGravity;  // F = ma
+    }
+}
+public class WeightTable {
+    public static void main(String[] args) {
+        double earthWeight = Double.parseDouble("185");
+        double mass = earthWeight / Planet.EARTH.surfaceGravity();
+        for (Planet p : Planet.values()) // enum 提供 values() 回傳 enum 的 field 陣列
+            System.out.printf("Weight on %s is %f%n", p, p.surfaceWeight(mass));
+    }
+}
+```
+
+在設計 enum 時你可能會根據抹些 filed 的來做判斷要執行什麼程式, 你可以用
+switch case 判斷.
+```java
+public enum Operation {
+    PLUS, MINUS, TIMES, DIVIDE;
+
+    // Do the arithmetic operation represented by this constant
+    public double apply(double x, double y) {
+        switch (this) {
+            case PLUS:
+                return x + y;
+            case MINUS:
+                return x - y;
+            case TIMES:
+                return x * y;
+            case DIVIDE:
+                return x / y;
+        }
+        throw new AssertionError("Unknown op: " + this);
+    }
+}
+``` 
+但是這樣有問題萬一你新增一個 field 而忘了實作 case 則會 error 你可以使用
+ConstantSpecific 方法實作.
+```java
+public enum OperationConstantSpecific {
+
+    PLUS {
+        public double apply(double x, double y) {
+            return x + y;
+        }
+    },
+    MINUS {
+        public double apply(double x, double y) {
+            return x - y;
+        }
+    },
+    TIMES {
+        public double apply(double x, double y) {
+            return x * y;
+        }
+    },
+    DIVIDE {
+        public double apply(double x, double y) {
+            return x / y;
+        }
+    };
+
+    public abstract double apply(double x, double y);
+}
+```
+
+使用 ConstantSpecific 方法實作有個缺點 enum 方法無法 share method
+中共同的 value, 如下有 basePay, overtimePay 這兩個 value
+如果不想複製貼上, 只能使用 switch case
+```java
+public enum  PayrollDay {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+    private static final int MINS_PER_SHIFT = 8 * 60;
+
+    int pay(int minutesWorked, int payRate) {
+        int basePay = minutesWorked * payRate;
+        int overtimePay;
+        switch (this) {
+            case SATURDAY:
+            case SUNDAY: // Weekend
+                overtimePay = basePay / 2;
+                break;
+            default: // Weekday
+                overtimePay = minutesWorked <= MINS_PER_SHIFT
+                        ? 0
+                        : (minutesWorked - MINS_PER_SHIFT) * payRate / 2;
+        }
+        return basePay + overtimePay;
+    }
+}
+```
+但是這樣可能又會忘了實作新的 field 因此你可以使用 strategy enum pattern
+在內部的 private enum 實作假日特定的薪水支付方式以減少複製貼上.
+```java
+public enum PayrollDayStrategyEnum {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY(PayType.WEEKEND), SUNDAY(PayType.WEEKEND);
+    private final PayType payType;
+
+    PayrollDayStrategyEnum(PayType payType) {
+        this.payType = payType;
+    }
+
+    PayrollDayStrategyEnum() {
+        this(PayType.WEEKDAY);
+    }  // Default
+
+    int pay(int minutesWorked, int payRate) {
+        return payType.pay(minutesWorked, payRate);
+    }
+
+    // The strategy enum type
+    private enum PayType {
+        WEEKDAY {
+            int overtimePay(int minsWorked, int payRate) {
+                return minsWorked <= MINS_PER_SHIFT ? 0 : (minsWorked - MINS_PER_SHIFT) * payRate / 2;
+            }
+        }, WEEKEND {
+            int overtimePay(int minsWorked, int payRate) {
+                return minsWorked * payRate / 2;
+            }
+        };
+
+        abstract int overtimePay(int mins, int payRate);
+
+        private static final int MINS_PER_SHIFT = 8 * 60;
+
+        int pay(int minsWorked, int payRate) {
+            int basePay = minsWorked * payRate;
+            return basePay + overtimePay(minsWorked, payRate);
+        }
+    }
+}
+``` 
+ 
