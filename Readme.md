@@ -1287,7 +1287,7 @@ public class WeightTable {
 }
 ```
 
-在設計 enum 時你可能會根據抹些 filed 的來做判斷要執行什麼程式, 你可以用
+在設計 enum 時你可能會根據抹些 instance 的來做判斷要執行什麼程式, 你可以用
 switch case 判斷.
 ```java
 public enum Operation {
@@ -1309,7 +1309,7 @@ public enum Operation {
     }
 }
 ``` 
-但是這樣有問題萬一你新增一個 field 而忘了實作 case 則會 error 你可以使用
+但是這樣有問題萬一你新增一個 instance 而忘了實作 case 則會 error 你可以使用
 ConstantSpecific 方法實作.
 ```java
 public enum OperationConstantSpecific {
@@ -1364,8 +1364,9 @@ public enum  PayrollDay {
     }
 }
 ```
-但是這樣可能又會忘了實作新的 field 因此你可以使用 strategy enum pattern
-在內部的 private enum 實作假日特定的薪水支付方式以減少複製貼上.
+但是這樣可能又會忘了實作新的 instance 的 case 因此你可以使用 strategy
+enum pattern 在內部的 private enum
+實作假日特定的薪水支付方式以減少複製貼上.
 ```java
 public enum PayrollDayStrategyEnum {
     MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY(PayType.WEEKEND), SUNDAY(PayType.WEEKEND);
@@ -1406,4 +1407,39 @@ public enum PayrollDayStrategyEnum {
     }
 }
 ``` 
- 
+
+## Item 35: 使用 instance field 替代 ordinal() 
+
+在 Enum 中有一個 method ordinal() 會依照 field 順序輸出他順序的值,
+但是使用這個方法會有一些問題, 像是你在中間插入一個新的 enum instance
+或是跳號插入 enum instance 則會出現順序不一致的狀況, 因此請用 instance
+的 field 值當作順序判斷不要用 ordinal() method 這個 method 是 Java
+用來設計給 EnumSet and EnumMap 用的.
+```java
+// Abuse of ordinal to derive an associated value - DON'T DO THIS
+public enum Ensemble {
+    SOLO, DUET, TRIO, QUARTET, QUINTET,
+    SEXTET, SEPTET, OCTET, NONET, DECTET;
+
+    public int numberOfMusicians() {
+        return ordinal() + 1;
+    }
+    
+}
+
+public enum Ensemble2 {
+    SOLO(1), DUET(2), TRIO(3), QUARTET(4), QUINTET(5), SEXTET(6),
+    SEPTET(7), OCTET(8), DOUBLE_QUARTET(8), NONET(9), DECTET(10), TRIPLE_QUARTET(12);
+    private final int numberOfMusicians;
+
+    Ensemble2(int size) {
+        this.numberOfMusicians = size;
+    }
+
+    public int numberOfMusicians() {
+        return numberOfMusicians;
+    }
+}
+
+```
+
