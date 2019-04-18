@@ -1443,3 +1443,90 @@ public enum Ensemble2 {
 
 ```
 
+## Item 36: 使用 EnumSet 取代 bit fields
+
+舉例來說 以下是 linux chmod 可以使用 X = 1 W = 2 R = 4
+代表權限他們的 Set 與數字的關係如下
+
+| Permission  | number | bit |
+|---|---|---|
+| X  | 1 | 001  |
+| W  | 2 | 010  |
+| R  | 4 | 100  |
+| WX  | 3 | 011  |
+| RX  | 5 | 101  |
+| RW  | 6 | 110  |
+| RWX  | 7 | 111  | 
+
+你可以使用 Bit Field 的方式撰寫 Permission 的計算如下： 
+
+```java
+// Bit field enumeration constants - OBSOLETE!
+public class ChmodPermission {
+    public static final int READ = 1 << 2;  // 4
+    public static final int WRITE = 1 << 1;  // 2
+    public static final int EXECUTE = 1 << 0;  // 1
+
+    // Parameter is bitwise OR of zero or more constants
+    public static String getPermission(int permissions) {
+        if (permissions == 0)
+            return "";
+        if (permissions == 1)
+            return "X";
+        if (permissions == 2)
+            return "W";
+        if (permissions == 3)
+            return "RX";
+        if (permissions == 4)
+            return "R";
+        if (permissions == 5)
+            return "RX";
+        if (permissions == 6)
+            return "RW";
+        if (permissions == 7)
+            return "RWX";
+        throw new AssertionError("Unknown op");
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getPermission(READ | WRITE | EXECUTE));
+    }
+}
+
+```
+直接改 EnumSet 變得比較好讀而且有很多 method 可以呼叫並且可字定義
+method.
+```java
+public class ChmodPermissionEnumSet {
+    public enum Permission {
+        READ("R"), WRITE("W"),EXECUTE("X");
+
+        private final String permission;
+
+        Permission(String permission){
+            this.permission = permission;
+        }
+
+        public String getPermission() {
+            return permission;
+        }
+
+        @Override
+        public String toString() {
+            return permission;
+        }
+    }
+    
+    public static void main(String[] args) {
+        for (Permission permission : EnumSet.of(Permission.EXECUTE, Permission.WRITE, Permission.READ)) {
+            System.out.print(permission);
+        }
+        System.out.println();
+
+    }
+}
+``` 
+
+## Item 37: 使用 EnumMap 以替代 ordinal()
+
+ 
