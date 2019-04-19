@@ -1529,4 +1529,6 @@ public class ChmodPermissionEnumSet {
 
 ## Item 37: 使用 EnumMap 以替代 ordinal()
 
+ 直接看程式碼
  
+## Item 38: 
