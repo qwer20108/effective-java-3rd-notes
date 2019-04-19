@@ -1529,6 +1529,9 @@ public class ChmodPermissionEnumSet {
 
 ## Item 37: 使用 EnumMap 以替代 ordinal()
 
- 直接看程式碼
+ 直接看程式碼 
  
+ 備註: StreamEnumMap 跑的比 Stream
+ 慢不知道為什麼和本篇章說的不一樣(Openjdk 11)
 ## Item 38: 
+
