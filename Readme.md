@@ -1533,5 +1533,90 @@ public class ChmodPermissionEnumSet {
  
  備註: StreamEnumMap 跑的比 Stream
  慢不知道為什麼和本篇章說的不一樣(Openjdk 11)
-## Item 38: 
+## Item 38: 以 interface 讓 enum 模擬繼承
+
+你可以在 enum 中透過 interface 模擬繼承如下:
+```java
+public interface Operation {
+    double apply(double x, double y);
+}
+public enum BasicOperation implements Operation {
+    PLUS("+") {
+        public double apply(double x, double y) {
+            return x + y;
+        }
+    },
+    MINUS("-") {
+        public double apply(double x, double y) {
+            return x - y;
+        }
+    },
+    TIMES("*") {
+        public double apply(double x, double y) {
+            return x * y;
+        }
+    },
+    DIVIDE("/") {
+        public double apply(double x, double y) {
+            return x / y;
+        }
+    };
+
+    private final String symbol;
+
+    BasicOperation(String symbol) {
+        this.symbol = symbol;
+    }
+
+    @Override
+    public String toString() {
+        return symbol;
+    }
+
+}
+public enum ExtendedOperation implements Operation {
+    EXP("^") {
+        public double apply(double x, double y) {
+            return Math.pow(x, y);
+        }
+    }, REMAINDER("%") {
+        public double apply(double x, double y) {
+            return x % y;
+        }
+    };
+    private final String symbol;
+
+    ExtendedOperation(String symbol) {
+        this.symbol = symbol;
+    }
+
+    @Override
+    public String toString() {
+        return symbol;
+    }
+}
+``` 
+你可以透過 Class 物件的 getEnumConstants 拿到這個屬於這個 class 的 enum
+instance 並且透過 interface 呼叫他的方法.
+```java
+    @Test
+    public void testOperation(){
+        double x = Double.parseDouble("4");
+        double y = Double.parseDouble("2");
+        test(ExtendedOperation.class, x, y);
+        test(Arrays.asList(ExtendedOperation.values()), x, y);
+    }
+    private static <T extends Enum<T> & Operation> void test(Class<T> opEnumType, double x, double y) {
+        for (Operation op : opEnumType.getEnumConstants())
+            System.out.printf("%f %s %f = %f%n", x, op, y, op.apply(x, y));
+    }
+``` 
+或是直接把 enum 的 instance 傳進去呼叫也可以.
+```java
+    private static void test(Collection<? extends Operation> opSet, double x, double y) {
+        for (Operation op : opSet) System.out.printf("%f %s %f = %f%n", x, op, y, op.apply(x, y));
+    }
+```
+Java 的 java.nio.file.LinkOption enum 也透過這種方法實作了 CopyOption
+interface.
 
