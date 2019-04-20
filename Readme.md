@@ -1620,3 +1620,8 @@ instance 並且透過 interface 呼叫他的方法.
 Java 的 java.nio.file.LinkOption enum 也透過這種方法實作了 CopyOption
 interface.
 
+## Item 39: 偏好以 annotations 以替代 naming patterns
+
+本 Item 講解了 JUnit3 的 naming pattern 測試的缺點, 並講解了
+如何撰寫一個簡單的 Annotations based unit test library. 直接看範例就好.
+
