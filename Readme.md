@@ -1625,3 +1625,59 @@ interface.
 本 Item 講解了 JUnit3 的 naming pattern 測試的缺點, 並講解了
 如何撰寫一個簡單的 Annotations based unit test library. 直接看範例就好.
 
+## Item 40: 始終使用 ＠Override
+
+以下程式碼有一個 Bug 它應該印出的是 26 可是卻印出了 260.
+```java
+public class Bigram {
+    private final char first;
+    private final char second;
+
+    public Bigram(char first, char second) {
+        this.first = first;
+        this.second = second;
+    }
+
+    public boolean equals(Bigram b) {
+        return b.first == first && b.second == second;
+    }
+
+    public int hashCode() {
+        return 31 * first + second;
+    }
+
+    public static void main(String[] args) {
+        Set<Bigram> s = new HashSet<>();
+        for (int i = 0; i < 10; i++)
+            for (char ch = 'a'; ch <= 'z'; ch++)
+                s.add(new Bigram(ch, ch));
+        System.out.println(s.size());
+    }
+}
+
+```
+當你在 equals 上面加上 @Override 你發現編譯器報錯了, 原因是
+public boolean equals(Object o) method 的傳入的參數不一樣它不能
+Override. 而 Bug 的產生是 因為 HashSet 的實作是靠 Object 的
+equals 來操作而這段程式碼卻沒有 Override Object 的 equals .
+ 
+因此請在任何你所認為應該要 Override 的 method 加上 @Override
+讓編譯器幫你檢查, 這樣可以提早發現問題.
+ 
+```java
+    @Override
+    public boolean equals(Bigram b) {
+        return b.first == first && b.second == second;
+    }
+``` 
+
+(可是OpenJDK Set.java 沒有這麼做) In an abstract class or an
+interface, however, it is worth annotating all methods that you
+believe to override superclass or superinterface methods,
+whether concrete or abstract. For example, the Set interface
+adds no new methods to the Collection interface, so it should
+include Override annotations on all of its method declarations
+to ensure that it does not accidentally add any new methods to
+the Collection interface.
+
+## Item 41: 使用 marker interface 以定義型別 
