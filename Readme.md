@@ -1689,12 +1689,14 @@ marker interface 比 marker annotation 好的地方
 1. marker interfaces define a type that is implemented by instances of the
 marked class; marker annotations do not.
 
-uses the Serializable marker inter-face to indicate that a type is
+uses the Serializable marker interface to indicate that a type is
 serializable. The ObjectOutputStream.writeObject method, which
 serializes the object that is passed to it, requires that its argument
 be serializable.
 
 2. they can be targeted more precisely
+
+用 interface 可以繼承其他 mark interface 表示他是多個 mark interface
  
 If an annotation type is declared with target ElementType.TYPE, it can
  be applied to any class or interface.
@@ -1712,6 +1714,9 @@ If the marker applies only to classes and interfaces. 如果會有 method
 來維持一致性.
 
 
+effective java 沒有範例 - 舉例來說 Spring data 中 Repository interface
+和 RepositoryDefinition annotation 有同樣效果, 但是如果你使用 Repository
+interface 你可以寫一個 method 只接受 Repository type.
   
   
 
