@@ -1681,3 +1681,37 @@ to ensure that it does not accidentally add any new methods to
 the Collection interface.
 
 ## Item 41: 使用 marker interface 以定義型別 
+
+marker interface 指的是那些不包含任何 method 但是被設計用來 implement 的
+interface. 例如: Serializable. .
+
+marker interface 比 marker annotation 好的地方
+1. marker interfaces define a type that is implemented by instances of the
+marked class; marker annotations do not.
+
+uses the Serializable marker inter-face to indicate that a type is
+serializable. The ObjectOutputStream.writeObject method, which
+serializes the object that is passed to it, requires that its argument
+be serializable.
+
+2. they can be targeted more precisely
+ 
+If an annotation type is declared with target ElementType.TYPE, it can
+ be applied to any class or interface.
+ 
+The chief advantage of marker annotations over marker interfaces is that
+they are part of the larger annotation facility.
+
+you must use an annotation if the marker applies to any program element
+other than a class or interface
+
+If the marker applies only to classes and interfaces. 如果會有 method
+只接受這個 type 則使用 Interface 否則用 annotation. 
+
+如果你設計一個 framework 強烈依賴 annotations 使用 annotation
+來維持一致性.
+
+
+  
+  
+
