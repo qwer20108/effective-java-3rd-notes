@@ -1719,4 +1719,75 @@ effective java 沒有範例 - 舉例來說 Spring data 中 Repository interface
 interface 你可以寫一個 method 只接受 Repository type.
   
   
+# 第七章 Lambdas 與 Streams
+
+## Item 42:  lambdas 優於 匿名類別
+
+```java
+// Anonymous class instance as a function object - obsolete!
+Collections.sort(words,new Comparator<String>() {
+        public int compare (String s1, String s2) {
+            return Integer.compare(s1.length(), s2.length());
+        }
+    });
+// (string, string ) => int
+// Lambda expression as function object (replaces anonymous class)
+Collections.sort(words, 
+    (s1, s2) -> Integer.compare(s1.length(), s2.length())
+);
+``` 
+
+
+Omit the types of all lambda parameters unless their presence makes your
+program clearer.
+
+DoubleBinaryOperator = (double, double) => double
+
+```java
+public enum Operation {
+    PLUS("+", (x, y) -> x + y), 
+    MINUS("-", (x, y) -> x - y), 
+    TIMES("*", (x, y) -> x * y), 
+    DIVIDE("/", (x, y) -> x / y);
+    private final String symbol;
+    private final DoubleBinaryOperator op;
+
+    Operation(String symbol, DoubleBinaryOperator op) {
+        this.symbol = symbol;
+        this.op = op;
+    }
+
+    @Override
+    public String toString() {
+        return symbol;
+    }
+
+    public double apply(double x, double y) {
+        return op.applyAsDouble(x, y);
+    }
+}
+``` 
+
+**lambdas lack names and documentation; if a computation isn’t
+self-explanatory, or exceeds a few lines, don’t put it in a lambda.**:
+使用 lambda 合理的範圍在 一行到三行之間
+
+
+If you want to create an instance of an abstract class, you can do it
+with an anonymous class, but not a lambda
+
+you can use anonymous classes to create instances of interfaces with
+multiple abstract methods.
+
+In a lambda, the this keyword refers to the enclosing instance. 
+In an anonymous class,the this keyword refers to the anonymous class
+instance.
+If you need access to the function object from within its body, then you
+must use an anonymous class.
+
+If you have a function object that you want to make serializable, such
+as a Comparator, use an instance of a private static nested class.
+
+總結 **Don’t use anonymous classes for function objects unless you have
+to create instances of types that aren’t functional interfaces.**
 
