@@ -1791,3 +1791,68 @@ as a Comparator, use an instance of a private static nested class.
 總結 **Don’t use anonymous classes for function objects unless you have
 to create instances of types that aren’t functional interfaces.**
 
+## Item 43: 偏好使用 method references 而不是 lambdas 
+通常 method references 會比 lambdas 簡潔, 如底下 Map.merge() 方法
+他其中一個值, 可以讓你傳入 (T, T) => T 的 function.
+
+你可以將 (count, incr) -> count + incr 替換成 Integer::sum , 因為 int
+sum 的 function 也是 (int, int) => int 這種形式, 所以當你將他的 method
+reference 傳進去 function interface 他會進行運算. 
+```java
+// interface Map.java merge()
+default V merge(K key, V value,
+            BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        Objects.requireNonNull(value);
+        V oldValue = get(key);
+        V newValue = (oldValue == null) ? value :
+                   remappingFunction.apply(oldValue, value);
+        if (newValue == null) {
+            remove(key);
+        } else {
+            put(key, newValue);
+        }
+        return newValue;
+}
+
+map.merge(key, 1, (count, incr) -> count + incr);
+//BiFunction<? super V, ? super V, ? extends V> remappingFunction
+// Integer.sum()
+public static int sum(int a, int b) {
+        return a + b;
+}
+
+map.merge(key, 1, Integer::sum);
+
+
+```
+以下表格為 method refence 的種類 
+
+![](.Readme_images/Method_Ref_Type.png)
+
+
+通常 method reference 都可以以 lambda 取代, 但是以下特例只能使用 method
+reference (JLS, 9.9-2)
+> Example 9.9-2. Generic Function Types
+
+A function type may be generic, as a functional interface's abstract
+method may be generic. For example, in the following interface
+hierarchy: 
+```java
+
+interface G1 {
+    <E extends Exception> Object m() throws E;
+}
+interface G2 {
+    <F extends Exception> String m() throws Exception;
+}
+interface G extends G1, G2 {}
+```
+the function type of G is:
+```java
+<F extends Exception> ()-> String throws F
+```
+A generic function type for a functional interface may be implemented by
+a method reference expression (§15.13), but not by a lambda expression
+(§15.27) as there is no syntax for generic lambda expressions.
+
