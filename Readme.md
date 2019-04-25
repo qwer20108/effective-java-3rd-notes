@@ -520,17 +520,22 @@ java.util.concurrent.CountDownLatch 可以用來參考, 它雖然並非 immutabl
  
 此處指的 **inheritance** 指的是 implementation inheritance 並非,  interface inheritance
 
-**繼承違反封裝**: 當子類別行為依賴於父類別的實作時, 改變父類別, 子類別繼承下來的方法行為會被改變, 因此子類別有很大的機率需要更改程式碼.
+**繼承違反封裝**: 當子類別行為依賴於父類別的實作時, 改變父類別,
+子類別繼承下來的方法行為會被改變, 因此子類別有很大的機率需要更改程式碼.
 
-例如： testInstrumentedHashSet method getAddCount 預計是3, 但是實際卻回傳 6 ,
-因為 HashSet 的 addAll() 會呼叫 add(), 因此在 InstrumentedHashSet addAll() 呼叫 super.addAll(c) 
-同時又會呼叫了以繼承的 add() 方法造成重複計算, 雖然可以自己改變 addAll() 的實作讓他的行為正確, 
-但是你永遠不知道未來 JDK 會如何實作, 除非把 addAll() 的 override 取消掉. 雖然你也可以自己在子類別寫一些方法, 
-但是萬一有天父類別實作了同樣名稱的方法, 並且此方法和你的方法回傳型態不一樣, 那你的程式就不能編譯了.
+例如： testInstrumentedHashSet method getAddCount 預計是3,
+但是實際卻回傳 6 , 因為 HashSet 的 addAll() 會呼叫 add(), 因此在
+InstrumentedHashSet addAll() 呼叫 super.addAll(c) 同時又會呼叫了以繼承的
+add() 方法造成重複計算, 雖然可以自己改變 addAll() 的實作讓他的行為正確,
+但是你永遠不知道未來 JDK 會如何實作, 除非把 addAll() 的 override 取消掉.
+雖然你也可以自己在子類別寫一些方法,
+但是萬一有天父類別實作了同樣名稱的方法,
+並且此方法和你的方法回傳型態不一樣, 那你的程式就不能編譯了.
 
-而如果你使用複合, 則這些都不是問題, 因為良好封裝的物件, 它的行為不會因為實作而有改變, 
-因此你可以放心的使用複合在新的 class 中將要複合的物件宣告成 private field 並透過這個 field 轉發(forwarding) method 以達到
-重複使用 method 的目的.
+而如果你使用複合, 則這些都不是問題, 因為良好封裝的物件, 它的
+行為不會因為實作而有改變, 因此你可以放心的使用複合在新的 class
+中將要複合的物件宣告成 private field 並透過這個 field 轉發(forwarding)
+method 以達到 重複使用 method 的目的.
 
 繼承只適合用在子類別真的需要為子型態的情形:
 使用繼承時請確認子類別和父類別是 is-a 的關係. 當 B extend A 時
@@ -539,7 +544,8 @@ java.util.concurrent.CountDownLatch 可以用來參考, 它雖然並非 immutabl
 Vector\<E> 基本上都應該用複合設計.
 
 ## Item 19  設計並解釋如何繼承 class, 否則禁止繼承
-使用 Java8 引入的 @implSpec 撰寫 class 時明確的說明可能會被繼承使用的 method 其詳細實作規格,可讓繼承此 class 的人了解原本的方法實作細節 如下:
+使用 Java8 引入的 @implSpec 撰寫 class 時明確的說明可能會被繼承使用的
+method 其詳細實作規格,可讓繼承此 class 的人了解原本的方法實作細節 如下:
 java.util.AbstractCollection
 ```java
     /**
@@ -593,25 +599,34 @@ java.util.AbstractList
 
 如果你要設計可以讓別人繼承的 class 請遵守以下規則
 
-*  Constructors 不能呼叫可以被 override 的 method - 你只能呼叫 private methods, final methods, and static methods 這些不能被 override 的 method
+*  Constructors 不能呼叫可以被 override 的 method - 你只能呼叫 private
+   methods, final methods, and static methods 這些不能被 override 的
+   method
 
-SuperClass 的 constructor 會先於 SubClass 的 constructor 呼叫, 因此如果 SubClass 的 override 依賴於 SubClass 的 field 則會發生問題. 
-可參考 item19 範例
+SuperClass 的 constructor 會先於 SubClass 的 constructor 呼叫, 因此如果
+SubClass 的 override 依賴於 SubClass 的 field 則會發生問題. 可參考
+item19 範例
 
-* 當你設計好你的 class 請確保你會依照你目前的實作對未來的修改進行限制, 以確保 subclass 不會因為你的實作而造成行為改變
+* 當你設計好你的 class 請確保你會依照你目前的實作對未來的修改進行限制, 
+  以確保 subclass 不會因為你的實作而造成行為改變
 
 
-總結: 設計一個可以被繼承的 class 是很困難的. 你必須要對可被繼承的方法進行限制確保它未來的實作不會改變子類別的行為, 
-並以文件說明它會呼叫什麼可被繼承的方法, 及如何實作. 
-另外為了提供 subClass 最佳化程式碼, 你還需要設計一個 protected methods 提供子類別呼叫. 
+總結: 設計一個可以被繼承的 class 是很困難的. 你必須要對可被繼
+承的方法進行限制確保它未來的實作不會改變子類別的行為,
+並以文件說明它會呼叫什麼可被繼承的方法, 及如何實作. 另外為了提供
+subClass 最佳化程式碼, 你還需要設計一個 protected methods
+提供子類別呼叫.
 
-除非你確認這個 class 會被繼承否則, 請將 class 設為 final 或是將 constructors 設為 private.
+除非你確認這個 class 會被繼承否則, 請將 class 設為 final 或是將
+constructors 設為 private.
 
 ## item 20 interface 優於 abstract class
 * **Existing classes can easily be retrofitted to implement a new interface.**
 
-使用 interface 可以讓你的 class 被更容易的擴充, 例如: 現有的  class 可以透過 implement Comparable, Iterable, Autocloseable 
-以實作這些 interface 的功能以擴充 class 之功能, 但是如果你使用 abstract class 則必須透過繼承擴充.
+使用 interface 可以讓你的 class 被更容易的擴充, 例如: 現有的 class
+可以透過 implement Comparable, Iterable, Autocloseable 以實作這些
+interface 的功能以擴充 class 之功能, 但是如果你使用 abstract class
+則必須透過繼承擴充.
 
 * **Interfaces are ideal for defining mixins**: // mixin trait 有什麼不同?
  
@@ -619,9 +634,10 @@ mixin 可以讓你透過實作另一型態的方法使你的 class 混入另一�
 
 * **Interfaces allow for the construction of nonhierarchical type frameworks.** : 
 
-interface 可以讓你建立非階層式類別, 例如: 
-以下 歌手與作曲家的 interface, 可能有些歌手同時也是作曲家, 如果你使用 interface 可以在一個 class 中同時 implement Singer, Songwriter 兩個 interface, 
-或是建立一個 interface SingerSongwriter 繼承  Singer, Songwriter 在實作它. 
+interface 可以讓你建立非階層式類別, 例如: 以下 歌手與作曲家的 interface,
+可能有些歌手同時也是作曲家, 如果你使用  interface 可以在一個 class 中同時
+implement Singer, Songwriter 兩個 interface, 或是建立一個 interface
+SingerSongwriter 繼承 Singer, Songwriter 在實作它.
 ```java
 public interface Singer {
     AudioClip sing(Song s);
@@ -638,17 +654,22 @@ public interface SingerSongwriter extends Singer, Songwriter {
 ```
 * Interface 使用 item18 的 wrapper class 方法以安全並強大的方式擴充程式碼
 
-如果你使用 abstract classes 以定義型別, 你將需要透過繼承來擴充 class 這樣反而比 wrapper class 的方法更不安全且脆弱. (繼承很危險 item18)
+如果你使用 abstract classes 以定義型別, 你將需要透過繼承來擴充 class 
+這樣反而比 wrapper class 的方法更不安全且脆弱. (繼承很危險 item18)
 
 在 java8 你可以使用 default method 但是有一些限制需要注意
 * 你不能提供 equals 與 hashCode 的 default method
-* interface 不允許有 instance fields, 或是非 public 的 static members, 但是可以有 private static methods
+* interface 不允許有 instance fields, 或是非 public 的 static members, 
+  但是可以有 private static methods
 * 你不能加入 default methods 到你所不能控制的 interface
 
- 你可以結合 abstract 與 interface 來建立一個 `skeletal implementation class ` 通常來說 skeletal implementation classes 命名規則已 Abstract + Interface 來命名
- 如: Java Collections Framework - AbstractCollection, AbstractSet, AbstractList, AbstractMap 
+ 你可以結合 abstract 與 interface 來建立一個 `skeletal implementation
+ class ` 通常來說 skeletal implementation classes 命名規則已 Abstract +
+ Interface 來命名 如: Java Collections Framework - AbstractCollection,
+ AbstractSet, AbstractList, AbstractMap
   
-設計一個 skeletal implementation 可以讓使用者更加容易的實作 interface 以下是一個以 skeletal implementation class 建立的 Adapter 範例
+設計一個 skeletal implementation 可以讓使用者更加容易的實作 interface 
+以下是一個以 skeletal implementation class 建立的 Adapter 範例
 ```java
 // 此 method 將 int[] 轉為 List 來操作
 // Concrete implementation built atop skeletal implementation
@@ -674,12 +695,15 @@ static List<Integer> intArrayAsList(int[] a) {
     
 ```
 實作 skeletal implementation 其實很簡單的只是很繁瑣, 
-1. 首先根據你的 interface 決定那些 method 是要給其他 method implement 的不提供 default method
+1. 首先根據你的 interface 決定那些 method 是要給其他 method implement 
+   的不提供 default method
 2. 在其他你要直接 implement 的方法, 提供 default method
-3. if 這個 interface 已經達到你的要求了完成, else 以一個 abstract class implement 這個 interface 提供 non public fields 與 methods 完成任務.
+3. if 這個 interface 已經達到你的要求了完成, else 以一個 abstract class
+   implement  這個 interface 提供 non public fields 與 methods 完成任務.
 
-下面是一個 Skeletal implementation class AbstractMapEntry 的範例它 implement 了 Entry interface 
-讓你自己實作 K getKey(), V getValue() method 並提供 setValue 讓你選擇實作, 需要 
+下面是一個 Skeletal implementation class AbstractMapEntry 的範例它
+implement  了 Entry interface 讓你自己實作 K getKey(), V getValue()
+method 並提供 setValue 讓你選擇實作, 需要
 ```java
 // Skeletal implementation class
 public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
@@ -746,17 +770,23 @@ interface Entry<K, V> {
 }
 
 ```
-通常 skeletal implementation 透過 abstract implement interface 來達到取兩者的優點並由 subclass 實作, 
-但需要注意的是它是設計來給 subclass 繼承的, 所以請注意依照 item19 的方法來實作.
+通常 skeletal implementation 透過 abstract implement interface 
+來達到取兩者的優點並由 subclass 實作, 但需要注意的是它是設計來給
+subclass 繼承的, 所以請注意依照 item19 的方法來實作.
 
-另外  skeletal implementation 有一種變種的方式一個 class 直接 implement interface 如: AbstractMap.SimpleEntry 
-這個 class 它也是 implement interface 並可用來繼承的, 你可以直接使用這個 class 或是在某種情況下繼承這個 class.
+另外 skeletal implementation 有一種變種的方式一個 class 直接 implement 
+interface 如: AbstractMap.SimpleEntry 這個 class 它也是 implement
+interface 並可用來繼承的, 你可以直接使用這個 class
+或是在某種情況下繼承這個 class.
 
 ## Item 21  設計可以流傳後世的 Interface   
-在 Java 8 我們可以在 interface 中使用 default, 但是我們可能想像不到加入一個 default method 可能對某些特殊實作造成那些影響.
+在 Java 8 我們可以在 interface 中使用 default,
+但是我們可能想像不到加入一個 default method 
+可能對某些特殊實作造成那些影響.
 
-舉例來說以下是 Java8 Collection interface 中所引入的 default method 這個 method 看起來很簡單, 
-只是傳入一個 function: T -> boolean 如果 boolean 回傳 true 就刪除. 
+舉例來說以下是 Java8 Collection interface 中所引入的 default method 這個
+method 看起來很簡單, 只是傳入一個 function: T -> boolean 如果 boolean
+回傳 true 就刪除.
 ```java
     // Default method added to the Collection interface in Java 8
     default boolean removeIf(Predicate<? super E> filter) {
@@ -772,15 +802,21 @@ interface Entry<K, V> {
     }
 
 ```
-但是使用在某些實作像是 Apache Commons library 的 SynchronizedCollection 則可能會在 runtime 時發生 ConcurrentModificationException.
+但是使用在某些實作像是 Apache Commons library 的 SynchronizedCollection
+則可能會在 runtime 時發生 ConcurrentModificationException.
 
-其實在 JDK 中 Collections.synchronizedCollection class 也會發生類似的狀況, 但是它是 JDK 的一部分在開發時預料到這種狀況, 
-所以透過 override removeIf 來避免這種狀況. 而對於那些不是 JDK 的 library 則可能會發生無法預料的狀況.
+其實在 JDK 中 Collections.synchronizedCollection class
+也會發生類似的狀況, 但是它是 JDK 的一部分在開發時預料到這種狀況,
+所以透過 override removeIf 來避免這種狀況. 而對於那些不是 JDK 的 library
+則可能會發生無法預料的狀況.
 
-因此設計 interface 時想清楚你設計的 default 是否會影響到某些實作, 因為當你 interface release 出去了為了保持向下相容, 你就不能再更改 interface 了.
+因此設計 interface 時想清楚你設計的 default 是否會影響到某些實作,
+因為當你 interface release 出去了為了保持向下相容, 你就不能再更改
+interface 了.
 
 ## item 22 只在定義型別時用 interface
-在使用 interface 時常常有人將其用來定義常數以讓其只包含常數而不包含 method 這種 interface 通稱為 _constant  interface_ 如下:
+在使用 interface 時常常有人將其用來定義常數以讓其只包含常數而不包含
+method  這種 interface 通稱為 _constant interface_ 如下:
 ```java
 // Constant interface antipattern - do not use!
 public interface PhysicalConstants {
@@ -1856,3 +1892,71 @@ A generic function type for a functional interface may be implemented by
 a method reference expression (§15.13), but not by a lambda expression
 (§15.27) as there is no syntax for generic lambda expressions.
 
+## Item 44: 偏好使用標準 functional interface
+
+```java
+protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {   
+    return size() > 100;
+}
+```
+
+
+假設要做一個 LinkedHashMap 的建構方法, 
+讓你不用在 new  LinkedHashMap 時 Override removeEldestEntry
+(EldestEntryRemovalFunction) => LinkedHashMap
+
+```java
+// Unnecessary functional interface; use a standard one instead.
+@FunctionalInterface 
+interface EldestEntryRemovalFunction<K,V>{
+    boolean remove(Map<K,V> map, Map.Entry<K,V> eldest);
+}
+//以 BiPredicate<Map<K,V>,Map.Entry<K,V>> 取代 (T, U) = boolean
+``` 
+因為 Java 已經提供了很多標準的 funcational interface 你不用自己實作 **If
+one of the standard functional interfaces does the job, you should
+generally use it in preference to a purpose-built functional
+interface.**
+
+基礎 functional interface 列表, 其他 funcational interface
+基本上都是變形 ![](.Readme_images/basic_function_interface.png)
+
+> Operator 操作都是 T
+
+> Predicate 預測 回傳 boolean
+
+> Function 函數 給 T 回 R
+
+> Supplier 供應者 給你 T
+
+> Consumer 消費者 你給他 T
+
+可以用 primitive functional interfaces 就用不要用 Boxed primitives 傳入
+T 請參考 Item 61.
+
+什麼時候應該自行設計 functional interface 請參考 Comparator.java
+他提供了唯一的一個 int compare(T o1, T o2); abstract method 然後很多
+default method 並且它比 ToIntBiFunction (T, U) => int 更好表達 compare
+T, T => int
+* It will be commonly used and could benefit from a descriptive name.
+* It has a strong contract associated with it. 
+* It would benefit from custom default methods.
+
+
+@FunctionalInterface annotation 的目的
+1. it tells readers of the class and its documentation that the
+    interface was designed to enable lambdas     
+2. it keeps you honest because the interface won’t compile unless it
+   has exactly one abstract method; 
+3. it prevents maintainers from accidentally adding abstract methods to
+   the interface as it evolves.
+   
+**Always annotate your functional interfaces with the
+@FunctionalInterface annotation**
+
+不要在一個 method 中使用多個 funcational interface 的 overloading 如:
+ExecutorService.submit 之後 item52 會說明
+```java 
+<T> Future<T> submit(Callable<T> task)
+<T> Future<T> submit(Runnable task, T result)
+```
