@@ -2,6 +2,7 @@ package ch7.item45;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,9 +13,9 @@ import static java.util.stream.Collectors.groupingBy;
 
 // Overuse of streams - don't do this!
 public class AnagramsStreams {
-    public static void main(String[] args) throws IOException {
-        Path dictionary = Paths.get(args[0]);
-        int minGroupSize = Integer.parseInt(args[1]);
+    public static void main(String[] args) throws IOException, URISyntaxException {
+        Path dictionary = Paths.get(ClassLoader.getSystemClassLoader().getResource("dictionary.txt").toURI());
+        int minGroupSize = 2;
         try (Stream<String> words = Files.lines(dictionary)) {
             words.collect(
                     groupingBy(word -> word.chars().sorted()

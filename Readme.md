@@ -1952,7 +1952,7 @@ T, T => int
    the interface as it evolves.
    
 **Always annotate your functional interfaces with the
-@FunctionalInterface annotation**
+@Functional Interface annotation**
 
 不要在一個 method 中使用多個 funcational interface 的 overloading 如:
 ExecutorService.submit 之後 item52 會說明
@@ -1960,3 +1960,63 @@ ExecutorService.submit 之後 item52 會說明
 <T> Future<T> submit(Callable<T> task)
 <T> Future<T> submit(Runnable task, T result)
 ```
+
+## Item 45: 明智的使用 streams
+
+* *stream*: which represents a finite or infinite sequence of
+  data elements, 
+* *stream pipeline*: which represents a multistage computation
+  on these elements.
+  
+stream common sources 
+* collections
+* arrays,files
+* regular expression pattern matchers
+* pseudo random number generators
+* other streams
+
+Stream pipelines are evaluated *lazily*
+
+**Using helper methods is even more important for readability in stream
+pipelines than in iterative code **
+
+```java
+"Hello world!".chars().forEach(System.out::print);
+// 721011081081113211911111410810033
+"Hello world!".chars().forEach(x -> System.out.print((char) x));
+``` 
+
+>  you can do from **code blocks** that you can’t do from **function
+>  objects**
+
+* lambda 不能有可變值 From a code block, you can read or modify any
+  local variable in scope; from a lambda, you can only read final or
+  effectively final variables [JLS 4.12.4], and you can’t modify any
+  local variables.
+* lambda 不能回傳值中斷與丟Exception From a code block, you can return
+  from the enclosing method, break or continue an enclosing loop, or
+  throw any checked exception that this method is declared to throw;
+  from a lambda you can do none of these things.
+
+Streams 適合
+
+* Uniformly transform sequences of elements
+* Filter sequences of elements 
+* Combine sequences of elements using a single operation (for example to
+  add them, concatenate them, or compute their minimum)
+* Accumulate sequences of elements into a collection, perhaps grouping
+  them by some common attribute
+* Search a sequence of elements for an element satisfying some criterion
+  
+## Item 46: 在 steams 中用無副作用的 functions
+
+* pure function: is one whose result depends only on its input: it does
+  not depend on any mutable state, nor does it update any state.
+  
+  
+
+
+
+  
+
+

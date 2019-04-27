@@ -13,7 +13,7 @@ public class Bigram {
         this.second = second;
     }
 
-    @Override
+//    @Override
     public boolean equals(Bigram b) {
         return b.first == first && b.second == second;
     }
