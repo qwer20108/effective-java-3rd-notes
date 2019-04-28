@@ -2010,13 +2010,80 @@ Streams 適合
   
 ## Item 46: 在 steams 中用無副作用的 functions
 
+The most important part of the streams paradigm is to structure your
+computation as a sequence of transformations where the result of each
+stage is as close as possible to a *pure function* of the result of the
+previous stage. 
 * pure function: is one whose result depends only on its input: it does
   not depend on any mutable state, nor does it update any state.
   
-  
+```java
+    // Uses the streams API but not the paradigm--Don't do this!
+    // Scanner’s stream method to get a stream over the scanner. 
+    // This method was added in Java 9
+    Map<String, Long> freq = new HashMap<>();
+    try(Stream<String> words = new Scanner(file).tokens()) {
+        words.forEach(word -> {
+            freq.merge(word.toLowerCase(), 1L, Long::sum);
+        });
+    }
+    
+    // Proper use of streams to initialize a frequency table
+    Map<String, Long> freq;
+    try(Stream<String> words = new Scanner(file).tokens()) {
+        freq = words.collect(
+                groupingBy(String::toLowerCase, counting())
+                );
+    }
+``` 
+
+**The forEach operation should be used only to report the result of a 
+stream computation, not to perform the computation.**
 
 
+> Collector an opaque object that encapsulates a *reduction strategy*. 
 
-  
+reduction means combining the elements of a stream into a single object.
 
+example of Collector: toList(), toSet(), and 
+toCollection(collectionFactory)
+```java
+// Pipeline to get a top-ten list of words from a frequency table
+    List<String> topTen = freq.keySet().stream()
+    .sorted(comparing(freq::get).reversed())
+    .limit(10)
+    .collect(toList());
+``` 
+example:　toMap(keyMapper,valueMapper) if collision throw 
+IllegalStateException
+``` java
+// Using a toMap collector to make a map from string to enum
+    private static final Map<String, Operation> stringToEnum =
+        Stream.of(values())
+        .collect(toMap(Object::toString, e -> e));
+``` 
+
+Methods if collision
+ 
+BinaryOperator.maxBy
+
+convert the stream of albums to a map, mapping each artist to the album
+that has the best album by sales. 
+```java
+
+    // Collector to generate a map from key to chosen element for key
+    Map<Artist, Album> topHits = albums.collect(
+        toMap(Album::artist, a->a, maxBy(comparing(Album::sales)))
+    );
+
+    // Collector to impose last-write-wins policy
+    toMap(keyMapper, valueMapper, (v1, v2) -> v2)
+``` 
+ 
+
+groupingBy method - *classifier function*. The classifier function takes
+an element and returns the category into which it falls. 
+```java
+    words.collect(groupingBy(word -> alphabetize(word)))
+``` 
 
